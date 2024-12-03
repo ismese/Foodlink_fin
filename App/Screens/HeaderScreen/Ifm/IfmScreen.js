@@ -39,32 +39,42 @@ const IfmScreen = ({ navigation }) => {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    let password = ""; // 비밀번호를 저장할 변수
+  
+    Alert.prompt(
       "탈퇴하기",
-      "정말로 계정을 탈퇴하시겠습니까?",
+      "비밀번호를 입력하세요.",
       [
-        { text: "취소", style: "cancel" },
         {
-          text: "탈퇴",
-          onPress: () => {
-            console.log("계정 탈퇴 완료");
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "확인",
+          onPress: (input) => {
+            password = input; // 입력된 비밀번호를 저장
+            if (password === "") {
+              Alert.alert("오류", "비밀번호를 입력해주세요.");
+              return;
+            }
+            // 비밀번호를 확인하는 로직을 추가할 수 있습니다.
+            console.log("계정 탈퇴 완료. 입력된 비밀번호:", password);
             navigation.navigate("LoginScreen");
           },
         },
       ],
-      { cancelable: true }
+      "secure-text" // 비밀번호 입력을 위한 secure 텍스트
     );
   };
-
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
             style={styles.navigateContainer}
           >
-            <NavigateBefore />
+            <NavigateBefore onPress={() => navigation.goBack()} />
           </TouchableOpacity>
           <Text style={styles.headerText}>내 정보</Text>
         </View>

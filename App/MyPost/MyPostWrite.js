@@ -13,12 +13,12 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker"; // ImagePicker 추가
-import { styles } from "../App/MyPostModify.style";
-import NavigateBefore from "../App/components/NavigateBefore"; // NavigateBefore 컴포넌트
+import { styles } from "../MyPost/MyPostWrite.style";
+import NavigateBefore from "../components/NavigateBefore"; // NavigateBefore 컴포넌트
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { PostContext } from "../App/PostContext"; // PostContext import
+import { PostContext } from "../PostContext"; // PostContext import
 
-const MyPostModify = ({ navigation }) => {
+const MyPostWrite = ({ navigation }) => {
   const { addPost } = useContext(PostContext); // PostContext에서 addPost 가져오기
   const [images, setImages] = useState(Array(5).fill(null)); // 사진 상태
   const [selectedCategories, setSelectedCategories] = useState([]); // 선택된 카테고리
@@ -137,10 +137,10 @@ const MyPostModify = ({ navigation }) => {
       Alert.alert("입력 오류", "카테고리를 한 개 이상 선택해야 합니다.");
       return;
     }
-
+  
     // 새로운 게시물 추가
     addPost({
-      id: Date.now().toString(), // 고유한 ID 추가
+      id: Date.now().toString(),
       title,
       description,
       categories: selectedCategories,
@@ -148,9 +148,13 @@ const MyPostModify = ({ navigation }) => {
       images: images.filter((image) => image !== null),
       priceOrExchange,
     });
-
-    Alert.alert("수정 완료", "게시물이 수정되었습니다.");
-    navigation.navigate("MyScreen"); // MyScreen으로 이동
+  
+    Alert.alert("추가 완료", "게시물이 추가되었습니다.");
+  
+    // "내 게시판" 탭으로 이동
+    navigation.navigate("TabNavigator", {
+      screen: "내 게시판",
+    });
   };
   
   return (
@@ -164,14 +168,14 @@ const MyPostModify = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <NavigateBefore onPress={() => navigation.goBack()} />
-            <Text style={styles.title}>게시물 수정하기</Text>
+            <Text style={styles.title}>게시물 추가하기</Text>
             <View style={styles.emptySpace} />
           </View>
 
           {/* 작성자 정보 */}
           <View style={styles.authorSection}>
             <Image
-              source={require("../start-expo/assets/avatar.png")} // Avatar 이미지
+              source={require("../../start-expo/assets/avatar.png")} // Avatar 이미지
               style={styles.authorImage}
             />
             <View style={styles.authorTextContainer}>
@@ -296,16 +300,16 @@ const MyPostModify = ({ navigation }) => {
             <Text style={styles.labelText}>가격 혹은 나눔, 교환을 작성해주세요.</Text>
             <TextInput
               style={styles.inputBox}
-              placeholder="예: 5000원, 무료 나눔, 물물교환 제안 등"
+              placeholder="예: 5000원, 나눔, 교환"
               value={priceOrExchange}
               onChangeText={setPriceOrExchange}
             />
           </View>
 
-          {/* 수정하기 버튼 */}
+          {/* 추가하기 버튼 */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.submitButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.submitButtonText}>수정하기</Text>
+              <Text style={styles.submitButtonText}>추가하기</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -315,4 +319,4 @@ const MyPostModify = ({ navigation }) => {
   );
 };
 
-export default MyPostModify;
+export default MyPostWrite;

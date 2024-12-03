@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import Post from "../../../Post"; // Post 컴포넌트 재사용
 import { PostContext } from "../../../PostContext"; // 올바른 경로로 import
 
 const HeartScreen = ({ navigation }) => {

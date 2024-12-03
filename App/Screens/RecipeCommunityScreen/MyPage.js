@@ -136,7 +136,7 @@ const MyPage = () => {
         {/* 레시피 탭 */}
         {selectedTab === "레시피" && (
           <View style={styles.recipeListContainer}>
-            <RecipeList />
+            <RecipeList navigation={navigation}/>
           </View>
         )}
 

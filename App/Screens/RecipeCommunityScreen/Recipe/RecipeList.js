@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, Image, FlatList, StyleSheet } from "react-native";
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 
-const RecipeList = () => {
+const RecipeList = ({ navigation }) => {
   // 레시피 데이터
   const recipes = Array(10).fill({
     uri: null, // 이미지 URL 대신 null로 설정
@@ -16,7 +16,10 @@ const RecipeList = () => {
       numColumns={2} // 2열로 설정
       columnWrapperStyle={styles.row} // 열 간격 스타일
       renderItem={({ item }) => (
-        <View style={styles.recipeCard}>
+        <TouchableOpacity
+          style={styles.recipeCard}
+          onPress={() => navigation.navigate("NewIngredients", { recipe: item })} // MyIngredients로 이동
+        >
           {/* 이미지 부분 */}
           <View style={styles.recipeImage}>
             {item.uri ? (
@@ -32,7 +35,7 @@ const RecipeList = () => {
             <Text style={styles.recipeTitle}>{item.title}</Text>
             <Text style={styles.recipeAuthor}>{item.author}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
       showsVerticalScrollIndicator={false} // 스크롤바 숨김
     />

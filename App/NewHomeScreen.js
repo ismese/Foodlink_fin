@@ -7,7 +7,6 @@ import MyScreen from './Screens/Myscreen/MyScreen';
 import RecipeCommunityScreen from './Screens/RecipeCommunityScreen/Page';
 import ChatScreen from './Screens/ChatScreen/ChatScreen';
 import CustomHeader from './components/CustomHeader';
-import PostList from './PostList';
 import BoardScreen from './Board/BoardScreen';
 
 const Tab = createBottomTabNavigator();

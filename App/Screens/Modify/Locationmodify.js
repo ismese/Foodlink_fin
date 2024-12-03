@@ -12,11 +12,15 @@ const Locationmodify = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate("IfmScreen")}>
-            <NavigateBefore />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.navigateContainer}
+        onPress={() => navigation.navigate("IfmScreen")} 
+      >
+        <NavigateBefore />
+      </TouchableOpacity>
+    </View>
+
 
         <View style={styles.titleSection}>
           <Text style={styles.title}>거주 지역</Text>

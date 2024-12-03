@@ -107,23 +107,23 @@ const SignUp = ({ navigation }) => {
         />
 
         <Text style={styles.label}>이메일*</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="예) sunmoon123@sunmoon.kr"
-          placeholderTextColor="#c6c6c6"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <TextInput
+            style={styles.inputBox}
+            placeholder="예) sunmoon123@sunmoon.kr"
+            placeholderTextColor="#c6c6c6"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
         <Text style={styles.label}>휴대폰*</Text>
         <TextInput
           style={styles.inputBox}
           placeholder="숫자만 입력해주세요"
           placeholderTextColor="#c6c6c6"
-          keyboardType="phone-pad"
+          keyboardType="numeric"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))} // 숫자만 입력 가능
         />
 
         <Text style={styles.label}>생년월일</Text>
@@ -131,20 +131,29 @@ const SignUp = ({ navigation }) => {
           <TextInput
             style={styles.dropdownItem}
             placeholder="년도"
+            keyboardType="numeric"
             value={birthDate.year}
-            onChangeText={(text) => setBirthDate({ ...birthDate, year: text })}
+            onChangeText={(text) =>
+              setBirthDate({ ...birthDate, year: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
+            }
           />
           <TextInput
             style={styles.dropdownItem}
             placeholder="월"
+            keyboardType="numeric"
             value={birthDate.month}
-            onChangeText={(text) => setBirthDate({ ...birthDate, month: text })}
+            onChangeText={(text) =>
+              setBirthDate({ ...birthDate, month: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
+            }
           />
           <TextInput
             style={styles.dropdownItem}
             placeholder="일"
+            keyboardType="numeric"
             value={birthDate.day}
-            onChangeText={(text) => setBirthDate({ ...birthDate, day: text })}
+            onChangeText={(text) =>
+              setBirthDate({ ...birthDate, day: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
+            }
           />
         </View>
       </KeyboardAwareScrollView>

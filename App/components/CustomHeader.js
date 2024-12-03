@@ -40,9 +40,6 @@ const CustomHeader = ({ title }) => {
         </TouchableOpacity>
         <Text style={getTitleStyle()}>{title}</Text>
         <View style={headerStyles.headerRight}>
-          <TouchableOpacity onPress={() => navigation.navigate('AlarmScreen')}>
-            <Ionicons name="notifications-outline" size={22} color="green" style={headerStyles.icon} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('IfmScreen')}>
             <Ionicons name="person-outline" size={22} color="green" />
           </TouchableOpacity>

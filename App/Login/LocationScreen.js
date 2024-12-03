@@ -66,11 +66,10 @@ const LocationScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
   
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <NavigateBefore />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.header}>
+        <NavigateBefore onPress={() => navigation.goBack()} />
+      </View> 
+
 
         <View style={styles.titleSection}>
           <Text style={styles.title}>거주 지역</Text>
