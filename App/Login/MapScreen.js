@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { firestore } from '../../firebase'; // Firebase Firestore 가져오기
 
 const MapScreen = () => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [posts, setPosts] = useState([]); // Firestore에서 가져온 판매 글 데이터
 
+  // 현재 사용자 위치 가져오기
   useEffect(() => {
     let locationSubscription;
 
@@ -34,6 +37,19 @@ const MapScreen = () => {
     };
   }, []);
 
+  // Firestore에서 판매 글 데이터 가져오기
+  useEffect(() => {
+    const unsubscribe = firestore.collection('posts').onSnapshot((snapshot) => {
+      const loadedPosts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPosts(loadedPosts);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <View style={styles.container}>
       <MapView
@@ -48,6 +64,7 @@ const MapScreen = () => {
           }
         }
       >
+        {/* 현재 사용자 위치 표시 */}
         {location && (
           <Marker
             coordinate={{
@@ -58,6 +75,19 @@ const MapScreen = () => {
             description="이곳이 나의 현재 위치입니다."
           />
         )}
+
+        {/* Firestore에서 가져온 판매 글 위치 표시 */}
+        {posts.map((post) => (
+          <Marker
+            key={post.id}
+            coordinate={{
+              latitude: post.latitude,
+              longitude: post.longitude,
+            }}
+            title={post.title}
+            description={post.description}
+          />
+        ))}
       </MapView>
     </View>
   );
@@ -66,12 +96,12 @@ const MapScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16, 
+    padding: 16,
     backgroundColor: '#fff',
   },
   map: {
     flex: 0.7,
-    borderRadius: 10, 
+    borderRadius: 10,
   },
 });
 

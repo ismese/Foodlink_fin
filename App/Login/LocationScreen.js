@@ -1,13 +1,66 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, SafeAreaView } from "react-native";
+import { View, Text, TouchableOpacity, Modal, SafeAreaView, Alert } from "react-native";
 import { styles } from "../styles/LocationScreen.style";
 import MapScreen from "../components/mapContainer";
 import NavigateBefore from "../components/NavigateBefore";
 import NavigateAfter from "../components/NavigateAfter";
+import { getFirestore, doc, updateDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import * as Location from "expo-location";  // Expo Location API 사용
+
+const db = getFirestore();
+const auth = getAuth();
 
 const LocationScreen = ({ navigation }) => {
-  const [infoModalVisible, setInfoModalVisible] = useState(false); 
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [difficultyModalVisible, setDifficultyModalVisible] = useState(false);
+
+  // 위치 정보를 Firebase Firestore에 저장하는 함수
+  const saveLocation = async (latitude, longitude) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Firestore의 users 컬렉션에서 현재 사용자 문서에 위치 정보 업데이트
+        const userRef = doc(db, "users", user.uid); // 로그인된 사용자의 문서 참조
+        await updateDoc(userRef, {
+          latitude: latitude,
+          longitude: longitude,
+        });
+        // 위치 저장 성공 후 Alert 띄우고 OK 누르면 NewHomeScreen으로 이동
+        Alert.alert(
+          "위치 저장 성공", 
+          "위치 정보가 성공적으로 저장되었습니다.", 
+          [
+            { text: "OK", onPress: () => navigation.navigate("NewHomeScreen") } // "NewHomeScreen"으로 이동
+          ]
+        );
+      }
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      Alert.alert("위치 저장 실패", "위치 정보 저장에 실패했습니다.");
+    }
+  };
+
+  // 위치 정보를 가져오는 함수
+  const getLocation = async () => {
+    try {
+      // 위치 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("위치 권한", "위치 권한을 허용해야 위치 정보를 가져올 수 있습니다.");
+        return;
+      }
+
+      // 현재 위치를 가져옴
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const { latitude, longitude } = location.coords;
+      console.log("현재 위치:", latitude, longitude);
+      saveLocation(latitude, longitude);  // 위치 정보 저장 함수 호출
+    } catch (error) {
+      console.error(error);
+      Alert.alert("위치 가져오기 실패", "위치 정보를 가져오는 데 실패했습니다.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -32,7 +85,6 @@ const LocationScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.footer}>
-
           <View style={styles.footerRow}>
             <Text style={styles.footerText}>왜 지역을 인증할까요?</Text>
             <NavigateAfter onPress={() => setInfoModalVisible(true)} />
@@ -46,12 +98,14 @@ const LocationScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("NewHomeScreen")}
+          onPress={() => {
+            getLocation(); // 위치 인증 버튼 클릭 시 위치 정보를 가져오고 저장
+          }}
         >
-          <Text style={styles.buttonText}>완료하기</Text>
+          <Text style={styles.buttonText}>위치 인증하기</Text>
         </TouchableOpacity>
 
-
+        {/* 정보 모달 */}
         <Modal
           visible={infoModalVisible}
           animationType="slide"
@@ -77,7 +131,7 @@ const LocationScreen = ({ navigation }) => {
           </View>
         </Modal>
 
-
+        {/* 어려움 모달 */}
         <Modal
           visible={difficultyModalVisible}
           animationType="slide"
