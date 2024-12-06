@@ -83,28 +83,65 @@ const IngredientDetailScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
           <NavigateBefore onPress={() => navigation.goBack()} />
-          <Text style={styles.title}>AI가 추천하는 레시피</Text>
+          <Text style={styles.title}>AI 추천 레시피</Text>
+          <View style={styles.emptySpace} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: item.url }} style={styles.image} />
+        {/* 추가된 부분 */}
+        <View style={styles.ingredientDetailContainer}>
+          <Image
+            style={styles.image}
+            source={{ uri: item.url }} // MyIngredientsScreen에서 전달된 이미지 URL 사용
+          />
+          <View style={styles.infoContainer}>
+            <View style={styles.expirationContainer}>
+              <View style={styles.flexOne}>
+                <Text style={styles.expirationLabel}>유통기한:</Text>
+                <Text style={styles.expirationDate}>2024년/10월/13일</Text>
+              </View>
+            </View>
+            <View style={styles.categoryContainer}>
+              <Text style={styles.categoryText}>
+                농산물&gt;채소&gt;
+                <Text style={styles.itemName}>고구마</Text>
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 추가된 부분 */}
+        <View style={styles.userMessageContainer}>
+          <View style={styles.iconContainer}>
+            <Image
+              style={styles.userIcon}
+              source={require("../../../../start-expo/assets/avatar.png")}
+            />
           </View>
 
-          <View style={styles.detailContainer}>
-            <Text style={styles.description}>
-              AI가 감지한 식자재로 레시피를 확인해보세요!
+          <View style={styles.userMessage}>
+            <Text style={styles.userName}>동길님</Text>
+            <Text style={styles.message}>
+              이 선택한 식자재는 <Text style={styles.ingredientName}>고구마</Text> 입니다.
             </Text>
+          </View>
+        </View>
 
-            <TouchableOpacity
-              style={[styles.toggleButton, loading && { backgroundColor: "#ccc" }]}
-              onPress={detectAndFetchRecipes}
-              disabled={loading}
-            >
-              <Text style={styles.toggleButtonText}>레시피 추천 받기</Text>
-            </TouchableOpacity>
+
+
+
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          
+        {/* <TouchableOpacity
+            style={[styles.submitButton, loading && { backgroundColor: "#ccc" }]} // 로딩 중이면 버튼 색상 변경
+            onPress={detectAndFetchRecipes}
+            disabled={loading} // 로딩 중일 때 버튼 비활성화
+          >
+            <Text style={styles.submitButtonText}>레시피 추천 받기</Text>
+          </TouchableOpacity> */}
+
 
             {loading && <ActivityIndicator size="large" color="#2D754E" />}
 
@@ -123,7 +160,7 @@ const IngredientDetailScreen = ({ route, navigation }) => {
             ))}
 
             <View style={styles.separator}>
-              <Text style={styles.separatorText}>--- 오늘의 레시피 추천 ---</Text>
+              <Text style={styles.separatorText}>AI 기반 추천 레시피</Text>
             </View>
 
             {randomRecipes.map((recipe) => (
@@ -139,7 +176,7 @@ const IngredientDetailScreen = ({ route, navigation }) => {
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
+          
         </ScrollView>
       </View>
     </SafeAreaView>

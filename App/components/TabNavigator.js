@@ -31,6 +31,12 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: true,
+        tabBarStyle: {
+          height: 70,
+          position: 'absolute',
+          bottom: 0,
+          backgroundColor: 'white',
+        },
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = focused
             ? ICONS[route.name]?.focused || "help-circle"

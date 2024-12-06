@@ -1,11 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, Alert, SafeAreaView } from "react-native";
 import { styles } from "../Ifm/Ifm.Style";
 import { MaterialIcons } from "@expo/vector-icons";
 import NavigateBefore from "../../../components/NavigateBefore";
+import { getAuth } from "firebase/auth"; // Firebase Auth
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"; // Firestore 관련 함수 추가
 
 const IfmScreen = ({ navigation }) => {
   const [rating, setRating] = useState(0); 
+  const [nickname, setNickname] = useState("");  // 사용자 닉네임 상태
+  const [co2Reduction, setCo2Reduction] = useState(0);  // 절감된 CO2 상태
+
+  // Firebase Auth와 Firestore를 사용하기 위한 초기화
+  const auth = getAuth();
+  const db = getFirestore();
+
+  // 사용자 정보 및 탄소 배출 절감량 가져오는 함수
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        // Firestore에서 사용자 닉네임 가져오기
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setNickname(userDoc.data().nickname || "사용자");
+        }
+
+        // 거래 데이터에서 CO2 절감량 합산하기
+        const transactionsRef = collection(db, "transactions");
+        const q = query(transactionsRef, where("userId", "==", user.uid)); // 사용자 ID로 거래 데이터 조회
+        const querySnapshot = await getDocs(q);
+        
+        let totalCo2 = 0;
+        querySnapshot.forEach((doc) => {
+          totalCo2 += doc.data().CO2_reduction || 0;  // 각 거래의 CO2 절감량 합산
+        });
+        setCo2Reduction(totalCo2);  // 총 CO2 절감량 업데이트
+      }
+    };
+
+    fetchUserData();
+  }, [auth, db]);
 
   const handleRating = (value) => {
     setRating(value); 
@@ -57,7 +94,6 @@ const IfmScreen = ({ navigation }) => {
               Alert.alert("오류", "비밀번호를 입력해주세요.");
               return;
             }
-            // 비밀번호를 확인하는 로직을 추가할 수 있습니다.
             console.log("계정 탈퇴 완료. 입력된 비밀번호:", password);
             navigation.navigate("LoginScreen");
           },
@@ -82,8 +118,8 @@ const IfmScreen = ({ navigation }) => {
         <View style={styles.profileCard}>
           <Image source={require("../../../../start-expo/assets/avatar.png")} style={styles.profileImage} />
           <Text style={styles.profileText}>
-            <Text style={styles.highlightText}>동길님</Text>
-            <Text>의 나눔으로{"\n"} 500g의 CO</Text>
+            <Text style={styles.highlightText}>{nickname || "동길님"}</Text>
+            <Text>의 나눔으로{"\n"} {co2Reduction.toFixed(2)}g의 CO</Text>
             <Text style={styles.smallText}>2</Text>
             <Text> 배출을 절감했습니다.</Text>
           </Text>

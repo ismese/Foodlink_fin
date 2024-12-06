@@ -4,7 +4,6 @@ import 'firebase/compat/database';
 import ChatList from './ChatList';
 import ChatRoom from './ChatRoom';
 
-// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDAe4Vp0vpG0j6qWKqfhBLKe_X7tLfScjM",
   authDomain: "foodlink-2b531.firebaseapp.com",
@@ -15,7 +14,6 @@ const firebaseConfig = {
   appId: "1:247328439601:web:855b1ac29ec44e105b8410",
 };
 
-// Initialize Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -26,9 +24,8 @@ const ChatScreen = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [currentRoomId, setCurrentRoomId] = useState(null);
-  const userId = 'currentUser'; // Replace with authenticated user ID
+  const userId = 'currentUser';
 
-  // Load Chat List
   useEffect(() => {
     const chatListRef = db.ref('chats');
     const listener = chatListRef.on('value', (snapshot) => {
@@ -45,7 +42,6 @@ const ChatScreen = () => {
     return () => chatListRef.off('value', listener);
   }, []);
 
-  // Load Messages for Selected Chat
   useEffect(() => {
     if (!currentRoomId) return;
     const messagesRef = db.ref(`chats/${currentRoomId}/messages`);

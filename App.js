@@ -34,6 +34,7 @@ import ModifyCmPost from "./App/Screens/RecipeCommunityScreen/Community/ModifyCm
 import ModifyRecipe from "./App/Screens/RecipeCommunityScreen/Recipe/ModfiyRecipe";
 import MyFoodWrite from "./App/Screens/RecipeCommunityScreen/Ingredients/MyFoodWrite";
 import NewIngredients from "./App/Screens/RecipeCommunityScreen/Ingredients/NewIngredients";
+import ChatList from "./App/Screens/ChatScreen/ChatList";
 import { auth } from "./firebase"; // Firebase 인증 모듈 import
 
 const Stack = createStackNavigator();
@@ -92,6 +93,7 @@ export default function App() {
           <Stack.Screen name="ModifyRecipe" component={ModifyRecipe} />
           <Stack.Screen name="MyFoodWrite" component={MyFoodWrite} />
           <Stack.Screen name="NewIngredients" component={NewIngredients} />
+          <Stack.Screen name="ChatList" component={ChatList} />
         </Stack.Navigator>
       </NavigationContainer>
     </PostProvider>

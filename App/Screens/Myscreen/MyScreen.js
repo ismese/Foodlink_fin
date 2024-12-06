@@ -11,17 +11,54 @@ import {
 import { styles } from "../../styles/MyScreen.style";
 import { MaterialIcons } from "@expo/vector-icons";
 import { PostContext } from "../../PostContext";
+import { getAuth } from "firebase/auth";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"; // Firestore 관련 함수 추가
 
 const MyScreen = ({ navigation }) => {
   const { posts: contextPosts, deletePost, addPost } = useContext(PostContext); // PostContext에서 posts 가져오기
   const [posts, setPosts] = useState([]); // 로컬 상태로 posts 관리
   const [showPostSelection, setShowPostSelection] = useState(false);
   const [rating, setRating] = useState(4); // 초기 별점 설정
+  const [nickname, setNickname] = useState("");  // 사용자 닉네임 상태
+  const [co2Reduction, setCo2Reduction] = useState(0);  // 절감된 CO2 상태
+
+  // Firebase Auth와 Firestore 사용을 위한 초기화
+  const auth = getAuth();
+  const db = getFirestore();
 
   // Context posts를 로컬 posts와 동기화
   useEffect(() => {
     setPosts(contextPosts);
   }, [contextPosts]);
+
+  // Firestore에서 사용자 닉네임 가져오기
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        // Firestore에서 사용자 닉네임 가져오기
+        const userDocRef = doc(db, "users", user.uid);  // 'users' 컬렉션에서 사용자 정보 가져오기
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setNickname(userDoc.data().nickname || "사용자");  // 닉네임이 없으면 '사용자'로 설정
+        }
+
+        // 거래 데이터에서 CO2 절감량 합산하기
+        const transactionsRef = collection(db, "transactions");
+        const q = query(transactionsRef, where("userId", "==", user.uid)); // 사용자 ID로 거래 데이터 조회
+        const querySnapshot = await getDocs(q);
+
+        let totalCo2 = 0;
+        querySnapshot.forEach((doc) => {
+          totalCo2 += doc.data().CO2_reduction || 0;  // 각 거래의 CO2 절감량 합산
+        });
+        setCo2Reduction(totalCo2);  // 총 CO2 절감량 업데이트
+      }
+    };
+
+    fetchUserData();
+  }, [auth, db]);
 
   // 별점 조정 함수
   const handleRating = (value) => {
@@ -74,8 +111,8 @@ const MyScreen = ({ navigation }) => {
             style={styles.profileImage}
           />
           <Text style={styles.profileText}>
-            <Text style={styles.highlightText}>동길님</Text>
-            <Text>의 나눔으로{"\n"} 500g의 CO</Text>
+            <Text style={styles.highlightText}>{nickname || "동길님"}</Text>
+            <Text>의 나눔으로{"\n"} {co2Reduction.toFixed(2)}g의 CO</Text>
             <Text style={styles.smallText}>2</Text>
             <Text> 배출을 절감했습니다.</Text>
           </Text>
