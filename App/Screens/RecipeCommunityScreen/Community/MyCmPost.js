@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
 import { styles } from "../../../styles/RecipeCommunity/MyCmPost.style";
 import NavigateBefore from "../../../components/NavigateBefore";
 import CmPostList from "./CmPostList"; // 게시물 리스트 컴포넌트 임포트
+import MyCmPostList from "./MyCmPostList";
 
 const MyCmPost = ({ navigation }) => {
   return (
@@ -17,7 +18,7 @@ const MyCmPost = ({ navigation }) => {
 
         {/* 게시물 리스트 */}
         <View style={styles.recipeListContainer}>
-          <CmPostList navigation={navigation} />
+          <MyCmPostList navigation={navigation} />
         </View>
 
         {/* 추가하기 버튼 */}

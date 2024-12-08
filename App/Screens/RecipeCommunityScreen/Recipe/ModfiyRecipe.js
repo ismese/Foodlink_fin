@@ -9,12 +9,20 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { styles } from "../../../styles/RecipeCommunity/ModfiyRecipe.style"
+import { styles } from "../../../styles/RecipeCommunity/ModfiyRecipe.style";
 import NavigateBefore from "../../../components/NavigateBefore"; // NavigateBefore 컴포넌트
 import * as ImagePicker from "expo-image-picker"; // 이미지 추가 라이브러리
+import { getFirestore, doc, updateDoc } from "firebase/firestore";
+import { app2 } from "../../../../firebase"; // Firebase 초기화
+import { uploadImageToCloudinary } from "../../../services/cloudinaryService"; // Cloudinary 업로드 유틸리티
 
-const ModifyRecipe = ({ navigation }) => {
-  const [images, setImages] = useState(Array(5).fill(null)); // 사진 상태
+const ModifyRecipe = ({ navigation, route }) => {
+  const { recipe } = route.params; // 전달받은 레시피 데이터
+  const [images, setImages] = useState(recipe.images || Array(5).fill(null));
+  const [title, setTitle] = useState(recipe.title || "");
+  const [ingredients, setIngredients] = useState(recipe.ingredients || "");
+  const [instructions, setInstructions] = useState(recipe.instructions || "");
+  const db = getFirestore(app2);
 
   // 이미지 추가 핸들러
   const handleAddImage = async () => {
@@ -29,17 +37,60 @@ const ModifyRecipe = ({ navigation }) => {
       quality: 0.5,
     });
 
-    if (!pickerResult.cancelled) {
-      setImages((prevImages) => {
-        const newImages = [...prevImages];
-        const emptyIndex = newImages.indexOf(null);
-        if (emptyIndex !== -1) {
-          newImages[emptyIndex] = pickerResult.uri;
-        } else {
-          Alert.alert("슬롯 초과", "더 이상 이미지를 추가할 수 없습니다.");
-        }
-        return newImages;
+    if (!pickerResult.canceled && pickerResult.assets?.length > 0) {
+      const selectedImage = pickerResult.assets[0].uri; // 선택한 이미지 URI
+      console.log("선택된 이미지 URI:", selectedImage);
+
+      try {
+        const uploadedImageUrl = await uploadImageToCloudinary(selectedImage);
+        setImages((prevImages) => {
+          const newImages = [...prevImages];
+          const emptyIndex = newImages.indexOf(null);
+          if (emptyIndex !== -1) {
+            newImages[emptyIndex] = uploadedImageUrl;
+          } else {
+            Alert.alert("슬롯 초과", "더 이상 이미지를 추가할 수 없습니다.");
+          }
+          return newImages;
+        });
+      } catch (error) {
+        console.error("Cloudinary 업로드 실패:", error);
+        Alert.alert("오류", "Cloudinary 업로드에 실패했습니다.");
+      }
+    } else {
+      Alert.alert("오류", "이미지를 선택하지 않았습니다.");
+    }
+  };
+
+  // 이미지 삭제 핸들러
+  const handleDeleteImage = (index) => {
+    setImages((prevImages) => {
+      const newImages = [...prevImages];
+      newImages[index] = null; // 선택한 이미지를 null로 설정
+      return newImages;
+    });
+  };
+
+  // 레시피 수정 핸들러
+  const handleUpdateRecipe = async () => {
+    if (!title || !ingredients || !instructions || images.every((img) => img === null)) {
+      Alert.alert("오류", "모든 필드를 입력하고 이미지를 추가해주세요.");
+      return;
+    }
+
+    try {
+      const recipeDocRef = doc(db, "recipe", recipe.id);
+      await updateDoc(recipeDocRef, {
+        title,
+        ingredients,
+        instructions,
+        images: images.filter((img) => img !== null), // null이 아닌 이미지만 저장
       });
+      Alert.alert("성공", "레시피가 성공적으로 수정되었습니다.");
+      navigation.goBack();
+    } catch (error) {
+      console.error("레시피 수정 중 오류:", error);
+      Alert.alert("오류", "레시피 수정에 실패했습니다.");
     }
   };
 
@@ -70,7 +121,19 @@ const ModifyRecipe = ({ navigation }) => {
                 !uri && { backgroundColor: "#F2F3F6" },
               ]}
             >
-              {uri && <Image source={{ uri }} style={styles.recipeImage} />}
+              {uri ? (
+                <>
+                  <Image source={{ uri }} style={styles.recipeImage} />
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteImage(index)}
+                  >
+                    <Text style={styles.deleteButtonText}>삭제</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <Text style={styles.placeholderText}>이미지 없음</Text>
+              )}
             </View>
           ))}
         </ScrollView>
@@ -78,33 +141,44 @@ const ModifyRecipe = ({ navigation }) => {
 
       {/* 제목 섹션 */}
       <View style={styles.inputSection}>
-        <Text style={styles.labelText}>제목을 작성해주세요.</Text>
-        <TextInput style={styles.inputBox} placeholder="제목을 입력하세요" />
+        <Text style={styles.labelText}>제목을 수정해주세요.</Text>
+        <TextInput
+          style={styles.inputBox}
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChangeText={setTitle}
+        />
       </View>
 
       {/* 재료 섹션 */}
       <View style={styles.inputSection}>
-        <Text style={styles.labelText}>재료를 작성해주세요.</Text>
-        <TextInput style={styles.inputBox} placeholder="재료를 입력하세요" />
+        <Text style={styles.labelText}>재료를 수정해주세요.</Text>
+        <TextInput
+          style={styles.inputBox}
+          placeholder="재료를 입력하세요"
+          value={ingredients}
+          onChangeText={setIngredients}
+        />
       </View>
-      
+
       {/* 조리 순서 섹션 */}
       <View style={styles.inputSection}>
-        <Text style={styles.labelText}>조리순서를 작성해주세요.</Text>
+        <Text style={styles.labelText}>조리순서를 수정해주세요.</Text>
         <TextInput
           style={styles.textArea}
           placeholder="허위 식자재와 사기 등 위법행위에 대한 작성은 Food Link를 이용 제재 당할 수 있습니다."
           multiline
+          value={instructions}
+          onChangeText={setInstructions}
         />
       </View>
 
-        {/* 추가하기 버튼 */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.submitButton}
-            onPress={() => navigation.goBack()}>
-            <Text style={styles.submitButtonText}>수정하기</Text>
-          </TouchableOpacity>
-        </View>
+      {/* 수정하기 버튼 */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.submitButton} onPress={handleUpdateRecipe}>
+          <Text style={styles.submitButtonText}>수정하기</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };

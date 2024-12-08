@@ -18,22 +18,22 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import NavigateBefore from '../../components/NavigateBefore';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { getAuth } from "firebase/auth";
+import firebase from "firebase/compat/app";
+import "firebase/compat/database";
 
-const ChatRoom = ({
-  messages,
-  input,
-  setInput,
-  handleSendMessage,
-  currentRoom,
-  setCurrentRoomId,
-  userId,
-}) => {
-  const navigation = useNavigation();
+const ChatRoom = ({ route }) => {
+  const { chatRoomId, post } = route.params;
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
   const flatListRef = useRef(null);
+  const navigation = useNavigation();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null); // 선택된 날짜 저장
-  const [showRatingModal, setShowRatingModal] = useState(false); // 별점 모달 상태
-  const [rating, setRating] = useState(0); // 선택한 별점
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const currentUserUID = getAuth().currentUser?.uid;
+  const db = firebase.database();
 
   useEffect(() => {
     navigation.setOptions({
@@ -54,15 +54,44 @@ const ChatRoom = ({
     };
   }, [navigation]);
 
+  useEffect(() => {
+    const messagesRef = db.ref(`chats/${chatRoomId}/messages`);
+    messagesRef.on("value", (snapshot) => {
+      const loadedMessages = [];
+      snapshot.forEach((child) => {
+        loadedMessages.push({ id: child.key, ...child.val() });
+      });
+      setMessages(loadedMessages);
+    });
+
+    return () => messagesRef.off();
+  }, [chatRoomId]);
+
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
-  const handleSendMessageWithScroll = () => {
-    handleSendMessage();
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+  const sendMessage = () => {
+    if (input.trim()) {
+      const messageRef = db.ref(`chats/${chatRoomId}/messages`).push();
+      messageRef.set({
+        sender: currentUserUID,
+        text: input.trim(),
+        timestamp: Date.now(),
+      })
+      .then(() => {
+        // 마지막 메시지와 시간 업데이트 (안전한 처리 추가)
+        db.ref(`chats/${chatRoomId}`).update({
+          lastMessage: input.trim() || "메시지 없음",
+          lastMessageTime: Date.now(),
+        });
+        setInput("");
+        flatListRef.current?.scrollToEnd({ animated: true });
+      })
+      .catch((error) => {
+        console.error("메시지 전송 오류:", error);
+      });
+    }
   };
 
   const handleSetDate = () => {
@@ -85,8 +114,7 @@ const ChatRoom = ({
   };
 
   const confirmRating = () => {
-    // 모달을 먼저 닫고 Alert를 띄웁니다.
-    setShowRatingModal(false); 
+    setShowRatingModal(false);
     Alert.alert(
       '별점',
       `별점 ${rating}개가 매겨졌습니다.`,
@@ -94,8 +122,7 @@ const ChatRoom = ({
         {
           text: '취소',
           onPress: () => {
-            setShowRatingModal(true); // 취소 시 모달을 다시 열기
-            console.log('취소 클릭');
+            setShowRatingModal(true);
           },
           style: 'cancel',
         },
@@ -109,7 +136,6 @@ const ChatRoom = ({
       { cancelable: false }
     );
   };
-  
 
   return (
     <KeyboardAvoidingView
@@ -120,11 +146,10 @@ const ChatRoom = ({
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
           <View style={{ flex: 1 }}>
-            {/* 상단 헤더 */}
             <View style={styles.header}>
-              <NavigateBefore onPress={() => setCurrentRoomId(null)} />
+              <NavigateBefore onPress={() => navigation.goBack()} />
               <Text style={[styles.chatTitle, { textAlign: 'left', paddingLeft: 30 }]}>
-                {currentRoom?.name || '채팅창'}</Text>
+                {post.title || '채팅창'}</Text>
               <View style={styles.headerIcons}>
                 <TouchableOpacity
                   style={styles.headerButton}
@@ -141,7 +166,6 @@ const ChatRoom = ({
               </View>
             </View>
 
-            {/* 약속 날짜 표시 */}
             {selectedDate && (
               <View style={styles.dateDisplay}>
                 <Text style={styles.dateText}>
@@ -150,7 +174,6 @@ const ChatRoom = ({
               </View>
             )}
 
-            {/* 메시지 리스트 */}
             <FlatList
               ref={flatListRef}
               data={messages}
@@ -159,12 +182,12 @@ const ChatRoom = ({
                 <View
                   style={[
                     styles.messageContainer,
-                    item.sender === userId ? styles.selfMessage : styles.otherMessage,
+                    item.sender === currentUserUID ? styles.selfMessage : styles.otherMessage,
                   ]}
                 >
                   <Text
                     style={
-                      item.sender === userId
+                      item.sender === currentUserUID
                         ? styles.messageText
                         : styles.otherMessageText
                     }
@@ -173,13 +196,11 @@ const ChatRoom = ({
                   </Text>
                 </View>
               )}
-             
               keyboardShouldPersistTaps="handled"
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
               onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
-            {/* 입력창 */}
             <View style={styles.inputWrapper}>
               <View style={styles.inputContainer}>
                 <TextInput
@@ -191,7 +212,7 @@ const ChatRoom = ({
                 />
                 <TouchableOpacity
                   style={styles.sendButton}
-                  onPress={handleSendMessageWithScroll}
+                  onPress={sendMessage}
                 >
                   <Ionicons name="send" size={20} color="#2D754E" />
                 </TouchableOpacity>
@@ -200,7 +221,6 @@ const ChatRoom = ({
           </View>
         </TouchableWithoutFeedback>
 
-        {/* 약속 날짜 선택 */}
         {showDatePicker && (
           <DateTimePicker
             value={new Date()}
@@ -210,7 +230,6 @@ const ChatRoom = ({
           />
         )}
 
-        {/* 별점 모달 */}
         <Modal
           transparent={true}
           visible={showRatingModal}
@@ -221,10 +240,10 @@ const ChatRoom = ({
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>별점 매기기</Text>
               <View style={styles.stars}>
-                {[1, 2, 3, 4, 5].map((star) => (
+                {[1, 2, 3, 4, 5].map((별) => (
                   <TouchableOpacity
                     key={star}
-                    onPress={() => setRating(star)}
+                    onPress={() => setRating(별)}
                     style={styles.starContainer}
                   >
                     <Ionicons

@@ -12,76 +12,105 @@ import { styles } from "../../styles/MyScreen.style";
 import { MaterialIcons } from "@expo/vector-icons";
 import { PostContext } from "../../PostContext";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"; // Firestore 관련 함수 추가
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+} from "firebase/firestore";
 
 const MyScreen = ({ navigation }) => {
-  const { posts: contextPosts, deletePost, addPost } = useContext(PostContext); // PostContext에서 posts 가져오기
-  const [posts, setPosts] = useState([]); // 로컬 상태로 posts 관리
+  const { deletePost } = useContext(PostContext);
+  const [posts, setPosts] = useState([]);
   const [showPostSelection, setShowPostSelection] = useState(false);
-  const [rating, setRating] = useState(4); // 초기 별점 설정
-  const [nickname, setNickname] = useState("");  // 사용자 닉네임 상태
-  const [co2Reduction, setCo2Reduction] = useState(0);  // 절감된 CO2 상태
+  const [rating, setRating] = useState(4);
+  const [nickname, setNickname] = useState("");
+  const [co2Reduction, setCo2Reduction] = useState(0);
 
-  // Firebase Auth와 Firestore 사용을 위한 초기화
   const auth = getAuth();
   const db = getFirestore();
 
-  // Context posts를 로컬 posts와 동기화
-  useEffect(() => {
-    setPosts(contextPosts);
-  }, [contextPosts]);
-
-  // Firestore에서 사용자 닉네임 가져오기
+  // Firestore에서 사용자 데이터 및 게시글 가져오기
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
+      if (!user) return;
 
-      if (user) {
-        // Firestore에서 사용자 닉네임 가져오기
-        const userDocRef = doc(db, "users", user.uid);  // 'users' 컬렉션에서 사용자 정보 가져오기
+      try {
+        // 사용자 닉네임 가져오기
+        const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          setNickname(userDoc.data().nickname || "사용자");  // 닉네임이 없으면 '사용자'로 설정
+          setNickname(userDoc.data().nickname || "사용자");
         }
 
-        // 거래 데이터에서 CO2 절감량 합산하기
+        // 거래 데이터에서 CO2 절감량 합산
         const transactionsRef = collection(db, "transactions");
-        const q = query(transactionsRef, where("userId", "==", user.uid)); // 사용자 ID로 거래 데이터 조회
-        const querySnapshot = await getDocs(q);
+        const transactionsQuery = query(
+          transactionsRef,
+          where("userId", "==", user.uid)
+        );
 
         let totalCo2 = 0;
-        querySnapshot.forEach((doc) => {
-          totalCo2 += doc.data().CO2_reduction || 0;  // 각 거래의 CO2 절감량 합산
+        const transactionsSnapshot = await getDocs(transactionsQuery);
+        transactionsSnapshot.forEach((doc) => {
+          totalCo2 += doc.data().CO2_reduction || 0;
         });
-        setCo2Reduction(totalCo2);  // 총 CO2 절감량 업데이트
+        setCo2Reduction(totalCo2);
+      } catch (error) {
+        console.error("데이터를 가져오는 중 오류 발생:", error);
+        Alert.alert("오류", "사용자 데이터를 가져오는 중 문제가 발생했습니다.");
       }
     };
 
     fetchUserData();
   }, [auth, db]);
 
-  // 별점 조정 함수
+  // Firestore에서 사용자 게시글 실시간 가져오기
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const postsRef = collection(db, "posts");
+    const postsQuery = query(postsRef, where("userUID", "==", user.uid));
+
+    const unsubscribe = onSnapshot(
+      postsQuery,
+      (snapshot) => {
+        const fetchedPosts = [];
+        snapshot.forEach((doc) => {
+          fetchedPosts.push({ id: doc.id, ...doc.data() });
+        });
+
+        // 최신 게시글이 배열의 앞쪽으로 오도록 정렬
+        fetchedPosts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+        setPosts(fetchedPosts);
+      },
+      (error) => {
+        console.error("실시간 데이터 구독 중 오류 발생:", error);
+        Alert.alert("오류", "게시글 데이터를 가져오는 중 문제가 발생했습니다.");
+      }
+    );
+
+    return () => unsubscribe();
+  }, [auth, db]);
+
   const handleRating = (value) => {
     setRating(value);
   };
 
-  // 내 포스트 수정 버튼 클릭
   const handleEdit = () => {
-    const newPost = {
-      image: "https://example.com/sample-image.jpg", // 예제 이미지 URL
-      id: Date.now().toString(), // 고유 ID
-    };
-    addPost(newPost); // Context에 추가
-    setPosts((prevPosts) => [newPost, ...prevPosts]); // 로컬 상태 업데이트
-    navigation.navigate("MyPostWrite"); // 네비게이션 이동
+    navigation.navigate("MyPostWrite"); // MyPostWrite 화면으로 이동
   };
 
-  // 삭제 모드 활성화
   const handleDelete = () => {
-    setShowPostSelection(true); // 게시물 선택 모드 활성화
+    setShowPostSelection(true);
   };
 
-  // 삭제 확인
   const confirmDeletePost = (postId) => {
     Alert.alert(
       "삭제 확인",
@@ -90,10 +119,16 @@ const MyScreen = ({ navigation }) => {
         { text: "아니요", style: "cancel" },
         {
           text: "네",
-          onPress: () => {
-            deletePost(postId); // PostContext에서 삭제
-            setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId)); // 로컬 상태 업데이트
-            setShowPostSelection(false); // 삭제 모드 비활성화
+          onPress: async () => {
+            try {
+              await deletePost(postId); // Firebase에서 게시물 삭제
+              setPosts((prevPosts) =>
+                prevPosts.filter((post) => post.id !== postId)
+              );
+              setShowPostSelection(false);
+            } catch (error) {
+              console.error("게시글 삭제 중 오류 발생:", error);
+            }
           },
         },
       ],
@@ -117,19 +152,13 @@ const MyScreen = ({ navigation }) => {
             <Text> 배출을 절감했습니다.</Text>
           </Text>
           <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleEdit}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={handleEdit}>
               <MaterialIcons name="edit" style={styles.actionButtonIcon} />
             </TouchableOpacity>
 
             <View style={styles.stars}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <TouchableOpacity
-                  key={value}
-                  onPress={() => handleRating(value)}
-                >
+                <TouchableOpacity key={value} onPress={() => handleRating(value)}>
                   <MaterialIcons
                     name={value <= rating ? "star" : "star-border"}
                     size={30}
@@ -148,18 +177,17 @@ const MyScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.separator}
-        />
-        
+        <View style={styles.separator} />
+
         {showPostSelection ? (
           <ScrollView contentContainerStyle={styles.gridContainer}>
             {posts
-              .filter((item) => item.images && item.images[0]) // 이미지가 없는 게시물 필터링
+              .filter((item) => item.images && item.images[0])
               .map((item) => (
                 <TouchableOpacity
-                  key={item.id} // 고유 키 설정
-                  style={[styles.gridItem]}
-                  onPress={() => confirmDeletePost(item.id)} // 삭제 확인 호출
+                  key={item.id}
+                  style={styles.gridItem}
+                  onPress={() => confirmDeletePost(item.id)}
                 >
                   <Image source={{ uri: item.images[0] }} style={styles.gridImage} />
                 </TouchableOpacity>
@@ -168,7 +196,7 @@ const MyScreen = ({ navigation }) => {
         ) : (
           <ScrollView contentContainerStyle={styles.gridContainer}>
             {posts
-              .filter((item) => item.images && item.images[0]) // 이미지가 없는 게시물 필터링
+              .filter((item) => item.images && item.images[0])
               .map((item) => (
                 <TouchableOpacity
                   key={item.id}

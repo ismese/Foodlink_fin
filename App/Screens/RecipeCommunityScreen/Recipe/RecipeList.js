@@ -1,29 +1,47 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { app2 } from "../../../../firebase"; // Firebase 초기화
+import { useNavigation } from "@react-navigation/native"; // Navigation 사용
 
-const RecipeList = ({ navigation }) => {
-  // 레시피 데이터
-  const recipes = Array(10).fill({
-    uri: null, // 이미지 URL 대신 null로 설정
-    title: "레시피 제목",
-    author: "작성자",
-  });
+const RecipeList = () => {
+  const [recipes, setRecipes] = useState([]);
+  const db = getFirestore(app2);
+  const navigation = useNavigation(); // Navigation 객체 가져오기
+
+  // Firestore에서 레시피 데이터 가져오기
+  const fetchRecipes = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "recipe"));
+      const fetchedRecipes = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRecipes(fetchedRecipes);
+    } catch (error) {
+      console.error("레시피 데이터 가져오기 실패:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
 
   return (
     <FlatList
       data={recipes}
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={(item) => item.id}
       numColumns={2} // 2열로 설정
       columnWrapperStyle={styles.row} // 열 간격 스타일
       renderItem={({ item }) => (
         <TouchableOpacity
           style={styles.recipeCard}
-          onPress={() => navigation.navigate("NewIngredients", { recipe: item })} // MyIngredients로 이동
+          onPress={() => navigation.navigate("NewIngredients", { recipe: item })}
         >
           {/* 이미지 부분 */}
           <View style={styles.recipeImage}>
-            {item.uri ? (
-              <Image source={{ uri: item.uri }} style={styles.image} />
+            {item.images && item.images.length > 0 ? (
+              <Image source={{ uri: item.images[0] }} style={styles.image} />
             ) : (
               <View style={styles.placeholderImage}>
                 <Text style={styles.placeholderText}>이미지 없음</Text>
@@ -32,8 +50,10 @@ const RecipeList = ({ navigation }) => {
           </View>
           {/* 텍스트 정보 */}
           <View style={styles.recipeInfo}>
-            <Text style={styles.recipeTitle}>{item.title}</Text>
-            <Text style={styles.recipeAuthor}>{item.author}</Text>
+            <Text style={styles.recipeTitle}>{item.title || "제목 없음"}</Text>
+            <Text style={styles.recipeAuthor}>
+              {item.nickname ? `작성자: ${item.nickname}` : "작성자 없음"}
+            </Text>
           </View>
         </TouchableOpacity>
       )}
@@ -48,7 +68,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   recipeCard: {
-    flex: 1, // 2열로 나누기 위해 flex를 1로 설정
+    flex: 1,
     marginHorizontal: 5, // 카드 간격
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
@@ -65,6 +85,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F3F6", // 회색 배경
     justifyContent: "center",
     alignItems: "center",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
   },
   placeholderImage: {
     flex: 1,

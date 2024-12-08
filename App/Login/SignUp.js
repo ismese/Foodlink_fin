@@ -16,32 +16,35 @@ const SignUp = ({ navigation }) => {
   const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "" });
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSignUp = () => {
+  const auth = getAuth(); // Firebase Auth 객체
+  const firestore = getFirestore(); // Firebase Firestore 객체
+
+  const handleSignUp = async () => {
     if (password !== confirmPassword) {
       setErrorMessage("비밀번호가 일치하지 않습니다.");
       return;
     }
 
-    const auth = getAuth();
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
-        const db = getFirestore();
+    try {
+      // Firebase Authentication에 이메일 및 비밀번호로 사용자 생성
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-        // Firestore에 추가 정보 저장
-        await setDoc(doc(db, "users", user.uid), {
-          username,
-          nickname,
-          email,
-          phone,
-          birthDate,
-        });
-
-        navigation.navigate("LocationScreen");
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
+      // Firestore에 사용자 데이터 저장
+      await setDoc(doc(firestore, "users", user.uid), {
+        username,
+        nickname,
+        email,
+        phone,
+        birthDate,
+        createdAt: new Date().toISOString(), // 생성 시간 추가
       });
+
+      navigation.navigate("LocationScreen"); // 회원가입 후 위치 화면으로 이동
+    } catch (error) {
+      setErrorMessage(error.message);
+      console.error("회원가입 오류:", error);
+    }
   };
 
   return (
@@ -107,23 +110,23 @@ const SignUp = ({ navigation }) => {
         />
 
         <Text style={styles.label}>이메일*</Text>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="예) sunmoon123@sunmoon.kr"
-            placeholderTextColor="#c6c6c6"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
+        <TextInput
+          style={styles.inputBox}
+          placeholder="예) sunmoon123@sunmoon.kr"
+          placeholderTextColor="#c6c6c6"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
 
         <Text style={styles.label}>휴대폰*</Text>
         <TextInput
           style={styles.inputBox}
           placeholder="숫자만 입력해주세요"
           placeholderTextColor="#c6c6c6"
-          keyboardType="numeric"
+          keyboardType="phone-pad"
           value={phone}
-          onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))} // 숫자만 입력 가능
+          onChangeText={setPhone}
         />
 
         <Text style={styles.label}>생년월일</Text>
@@ -131,29 +134,20 @@ const SignUp = ({ navigation }) => {
           <TextInput
             style={styles.dropdownItem}
             placeholder="년도"
-            keyboardType="numeric"
             value={birthDate.year}
-            onChangeText={(text) =>
-              setBirthDate({ ...birthDate, year: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
-            }
+            onChangeText={(text) => setBirthDate({ ...birthDate, year: text })}
           />
           <TextInput
             style={styles.dropdownItem}
             placeholder="월"
-            keyboardType="numeric"
             value={birthDate.month}
-            onChangeText={(text) =>
-              setBirthDate({ ...birthDate, month: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
-            }
+            onChangeText={(text) => setBirthDate({ ...birthDate, month: text })}
           />
           <TextInput
             style={styles.dropdownItem}
             placeholder="일"
-            keyboardType="numeric"
             value={birthDate.day}
-            onChangeText={(text) =>
-              setBirthDate({ ...birthDate, day: text.replace(/[^0-9]/g, "") }) // 숫자만 입력 가능
-            }
+            onChangeText={(text) => setBirthDate({ ...birthDate, day: text })}
           />
         </View>
       </KeyboardAwareScrollView>

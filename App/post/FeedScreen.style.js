@@ -158,6 +158,56 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  ownerInfo: {
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  backgroundColor: "#F0F8F9",
+  borderRadius: 8,
+  marginHorizontal: 16,
+  marginBottom: 16,
+  borderWidth: 1,
+  borderColor: "#E0E0E0",
+},
+ownerText: {
+  fontSize: 16,
+  color: "#333",
+  fontWeight: "bold",
+  marginBottom: 4,
+},
+expirationText: {
+  fontSize: 14,
+  color: "#777",
+},
+
+
+
+ownerInfo: {
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  backgroundColor: "#F0F8F9",
+  borderRadius: 8,
+  marginHorizontal: 16,
+  marginBottom: 16,
+  borderWidth: 1,
+  borderColor: "#E0E0E0",
+},
+ownerText: {
+  fontSize: 16,
+  color: "#333",
+  fontWeight: "bold",
+  marginBottom: 4,
+},
+expirationText: {
+  fontSize: 14,
+  color: "#777",
+},
+
+categoryText: {
+  fontSize: 14,
+  color: "#555",
+  marginTop: 4,
+},
+
 });
 
 export default styles;

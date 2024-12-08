@@ -1,22 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, SafeAreaView, Alert, ActionSheetIOS } from "react-native";
 import CmPost from "../Community/CmPost"; // CmPost 컴포넌트
 import { styles } from "../../../styles/RecipeCommunity/CmPostList.style";
-
-// 고유 ID를 생성하는 함수
-const generateId = () => Math.random().toString(36).substr(2, 9);
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { app2 } from "../../../../firebase"; // Firebase 초기화
 
 const CmPostList = ({ navigation }) => {
-  // 예시 데이터
-  const posts = Array(5).fill(null).map(() => ({
-    id: generateId(), // 고유 ID 생성
-    title: "제목",
-    content: "게시물 내용",
-    distance: "3km",
-    time: "3일전",
-    comments: 2,
-    likes: 7,
-  }));
+  const [posts, setPosts] = useState([]);
+  const db = getFirestore(app2);
+
+  // Firestore에서 게시물 가져오기
+  const fetchPosts = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "community"));
+      const fetchedPosts = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        const createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
+        const timeDifference = getTimeDifference(createdAt); // 시간 차이를 계산
+        return {
+          id: doc.id,
+          ...data,
+          time: timeDifference, // 시간 차이를 추가
+        };
+      });
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("게시물 가져오기 실패:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  // 시간 차이를 계산하는 함수
+  const getTimeDifference = (createdAt) => {
+    const now = new Date();
+    const diff = Math.floor((now - createdAt) / 1000); // 초 단위로 계산
+
+    if (diff < 60) {
+      return `${"1분"} 전`;
+    } else if (diff < 3600) {
+      return `${Math.floor(diff / 60)}분 전`;
+    } else if (diff < 86400) {
+      return `${Math.floor(diff / 3600)}시간 전`;
+    } else {
+      return `${Math.floor(diff / 86400)}일 전`;
+    }
+  };
+
+  // 게시물 삭제 함수
+  const deletePost = async (postId) => {
+    try {
+      await deleteDoc(doc(db, "community", postId));
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      Alert.alert("삭제 완료", "게시물이 성공적으로 삭제되었습니다.");
+    } catch (error) {
+      console.error("게시물 삭제 실패:", error.message);
+      Alert.alert("오류", "게시물 삭제에 실패했습니다.");
+    }
+  };
 
   // 옵션 버튼 핸들러
   const handleOptionsPress = (post) => {
@@ -37,7 +80,7 @@ const CmPostList = ({ navigation }) => {
               { text: "취소", style: "cancel" },
               {
                 text: "삭제",
-                onPress: () => console.log(`게시물 ${post.title} 삭제됨`),
+                onPress: () => deletePost(post.id),
               },
             ],
             { cancelable: true }
@@ -51,16 +94,17 @@ const CmPostList = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <CmPost
       {...item}
-      onPress={() => navigation.navigate("CmPostChat", item)}
-      onOptionsPress={() => handleOptionsPress(item)} // 옵션 버튼 핸들러 전달
+      onPress={() => navigation.navigate('CmPostChat', { post: item })} // post 객체 전달
+      onOptionsPress={() => handleOptionsPress(item)}
     />
   );
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <FlatList
         data={posts}
-        keyExtractor={(item) => item.id} // 고유 ID를 키로 설정
+        keyExtractor={(item) => item.id} // Firestore 문서 ID를 키로 설정
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}

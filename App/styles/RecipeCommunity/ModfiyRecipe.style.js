@@ -26,6 +26,39 @@ export const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom:20,
   },
+  removeImageButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    borderRadius: 15,
+    padding: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  
+  removeImageText: {
+    color: "white",
+    fontSize: 12,
+  },
+  placeholderText: {
+    color: "#B0B0B0",
+    fontSize: 12,
+  },
+  
   addImageBox: {
     width: 40,
     height: 40,

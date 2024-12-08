@@ -37,6 +37,7 @@ import NewIngredients from "./App/Screens/RecipeCommunityScreen/Ingredients/NewI
 import ChatList from "./App/Screens/ChatScreen/ChatList";
 import { auth } from "./firebase"; // Firebase 인증 모듈 import
 
+
 const Stack = createStackNavigator();
 
 export default function App() {
