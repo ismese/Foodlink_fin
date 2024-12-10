@@ -15,6 +15,7 @@ import { getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
+import NavigateBefore from "../components/NavigateBefore";
 
 const FeedScreen = ({ route, navigation }) => {
   const { post } = route.params || {}; // 기본값 설정하여 안전하게 처리
@@ -126,13 +127,13 @@ const FeedScreen = ({ route, navigation }) => {
     navigation.navigate("MyPostModify", { docId: post.id, postData: post });
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </SafeAreaView>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <ActivityIndicator size="large" color="#0000ff" />
+  //     </SafeAreaView>
+  //   );
+  // }
 
   if (!post) {
     return (
@@ -143,6 +144,17 @@ const FeedScreen = ({ route, navigation }) => {
   }
 
   return (
+
+
+    <SafeAreaView style={styles.safeArea}>
+          {/* Header */}
+          <View style={styles.header}>
+            <NavigateBefore onPress={() => navigation.goBack()} />
+            <Text style={styles.title}>게시물</Text>
+            <View style={styles.emptySpace} />
+          </View>
+
+
     <SafeAreaView style={styles.container}>
       {/* 게시물 상단 헤더 */}
       <PostHeader
@@ -169,12 +181,7 @@ const FeedScreen = ({ route, navigation }) => {
       {/* 하단 바 */}
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => setShowFavoriteBox(true)}
-          >
-            <Text style={styles.favoriteIcon}>♥</Text>
-          </TouchableOpacity>
+          <Text style={styles.priceLabel}>가격:</Text>
           <Text style={styles.price}>
             {post.priceOrExchange
               ? `${Number(post.priceOrExchange).toLocaleString()}원`
@@ -193,6 +200,7 @@ const FeedScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         )}
       </View>
+    </SafeAreaView>
     </SafeAreaView>
   );
 };

@@ -74,7 +74,7 @@ const LocationScreen = ({ navigation }) => {
         <View style={styles.titleSection}>
           <Text style={styles.title}>거주 지역</Text>
           <Text>
-            <Text style={styles.location}>아산시 탕정면</Text>
+            <Text style={styles.location}>현재 거주하는</Text>
             <Text style={styles.subtitle}> 지역을 인증해주세요.</Text>
           </Text>
         </View>

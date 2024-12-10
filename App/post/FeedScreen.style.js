@@ -1,12 +1,31 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+  
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    height: 50,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: "Inter-bold",
+    color: "#2E2F33",
+  },
+  emptySpace: {
+    width: 30,
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
   content: {
-    flex: 1,
     paddingHorizontal: 16,
   },
   backButton: {
@@ -14,8 +33,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backText: {
-    fontSize: 16,
-    color: "#4CAF50",
+    fontSize: 22,
+    color: "Black",
   },
   postImage: {
     width: "100%",
@@ -27,7 +46,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     backgroundColor: "#fff",
-    borderWidth: 1,
     borderColor: "#EAEAEA",
     borderRadius: 8,
   },
@@ -62,7 +80,7 @@ const styles = StyleSheet.create({
     color: "#777",
   },
   descriptionSection: {
-    padding: 12,
+    padding: 15,
     marginBottom: 16,
     backgroundColor: "#fff",
     borderWidth: 1,
@@ -76,41 +94,19 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 8,
   },
-  favoriteBox: {
-    position: "absolute",
-    bottom: "10%",
-    left: "10%",
-    right: "10%",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#EAEAEA",
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  favoriteText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 16,
-  },
+
   favoriteButtons: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
   },
-  favoriteButton: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginHorizontal: 8,
+  priceLabel: {
+    fontSize: 16,
+    color: "#555",
+    marginRight: 10, // 가격과 텍스트 사이의 간격
+    fontWeight: "bold"
   },
+  
   favoriteButtonText: {
     color: "#fff",
     fontWeight: "bold",
@@ -148,7 +144,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   chatButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#2D754E",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -160,8 +156,8 @@ const styles = StyleSheet.create({
   },
   ownerInfo: {
   paddingHorizontal: 16,
-  paddingVertical: 12,
-  backgroundColor: "#F0F8F9",
+  paddingVertical: 10,
+  backgroundColor: "white",
   borderRadius: 8,
   marginHorizontal: 16,
   marginBottom: 16,
@@ -178,30 +174,6 @@ expirationText: {
   fontSize: 14,
   color: "#777",
 },
-
-
-
-ownerInfo: {
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  backgroundColor: "#F0F8F9",
-  borderRadius: 8,
-  marginHorizontal: 16,
-  marginBottom: 16,
-  borderWidth: 1,
-  borderColor: "#E0E0E0",
-},
-ownerText: {
-  fontSize: 16,
-  color: "#333",
-  fontWeight: "bold",
-  marginBottom: 4,
-},
-expirationText: {
-  fontSize: 14,
-  color: "#777",
-},
-
 categoryText: {
   fontSize: 14,
   color: "#555",
