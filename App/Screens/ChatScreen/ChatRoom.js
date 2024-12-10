@@ -32,9 +32,10 @@ const ChatRoom = ({ route }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(0);
-  const currentUserUID = getAuth().currentUser?.uid;
+  const currentUserUID = getAuth()?.currentUser?.uid;
   const db = firebase.database();
 
+  // 헤더 숨김 및 복원
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -54,17 +55,21 @@ const ChatRoom = ({ route }) => {
     };
   }, [navigation]);
 
+  // 메시지 로드
   useEffect(() => {
     const messagesRef = db.ref(`chats/${chatRoomId}/messages`);
-    messagesRef.on("value", (snapshot) => {
+
+    const handleMessageUpdate = (snapshot) => {
       const loadedMessages = [];
       snapshot.forEach((child) => {
         loadedMessages.push({ id: child.key, ...child.val() });
       });
       setMessages(loadedMessages);
-    });
+    };
 
-    return () => messagesRef.off();
+    messagesRef.on("value", handleMessageUpdate);
+
+    return () => messagesRef.off("value", handleMessageUpdate);
   }, [chatRoomId]);
 
   const dismissKeyboard = () => {
@@ -74,23 +79,23 @@ const ChatRoom = ({ route }) => {
   const sendMessage = () => {
     if (input.trim()) {
       const messageRef = db.ref(`chats/${chatRoomId}/messages`).push();
-      messageRef.set({
-        sender: currentUserUID,
-        text: input.trim(),
-        timestamp: Date.now(),
-      })
-      .then(() => {
-        // 마지막 메시지와 시간 업데이트 (안전한 처리 추가)
-        db.ref(`chats/${chatRoomId}`).update({
-          lastMessage: input.trim() || "메시지 없음",
-          lastMessageTime: Date.now(),
+      messageRef
+        .set({
+          sender: currentUserUID,
+          text: input.trim(),
+          timestamp: Date.now(),
+        })
+        .then(() => {
+          db.ref(`chats/${chatRoomId}`).update({
+            lastMessage: input.trim(),
+            lastMessageTime: Date.now(),
+          });
+          setInput("");
+          flatListRef.current?.scrollToEnd({ animated: true });
+        })
+        .catch((error) => {
+          console.error("메시지 전송 오류:", error);
         });
-        setInput("");
-        flatListRef.current?.scrollToEnd({ animated: true });
-      })
-      .catch((error) => {
-        console.error("메시지 전송 오류:", error);
-      });
     }
   };
 
@@ -121,15 +126,13 @@ const ChatRoom = ({ route }) => {
       [
         {
           text: '취소',
-          onPress: () => {
-            setShowRatingModal(true);
-          },
+          onPress: () => setShowRatingModal(true),
           style: 'cancel',
         },
         {
           text: '저장하기',
           onPress: () => {
-            console.log('저장 클릭');
+            console.log('별점 저장 완료:', rating);
           },
         },
       ],
@@ -141,7 +144,7 @@ const ChatRoom = ({ route }) => {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 47 : 60}
+      keyboardVerticalOffset={0} // 기존 값을 줄이거나 0으로 설정
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
@@ -149,7 +152,8 @@ const ChatRoom = ({ route }) => {
             <View style={styles.header}>
               <NavigateBefore onPress={() => navigation.goBack()} />
               <Text style={[styles.chatTitle, { textAlign: 'left', paddingLeft: 30 }]}>
-                {post.title || '채팅창'}</Text>
+                {post.title || '채팅창'}
+              </Text>
               <View style={styles.headerIcons}>
                 <TouchableOpacity
                   style={styles.headerButton}
@@ -177,7 +181,7 @@ const ChatRoom = ({ route }) => {
             <FlatList
               ref={flatListRef}
               data={messages}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <View
                   style={[
@@ -240,10 +244,10 @@ const ChatRoom = ({ route }) => {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>별점 매기기</Text>
               <View style={styles.stars}>
-                {[1, 2, 3, 4, 5].map((별) => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <TouchableOpacity
                     key={star}
-                    onPress={() => setRating(별)}
+                    onPress={() => setRating(star)}
                     style={styles.starContainer}
                   >
                     <Ionicons

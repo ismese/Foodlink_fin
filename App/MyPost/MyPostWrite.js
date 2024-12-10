@@ -13,11 +13,11 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location"; // 위치 정보 가져오기 추가
+import * as Location from "expo-location";
 import { styles } from "../MyPost/MyPostWrite.style";
 import NavigateBefore from "../components/NavigateBefore";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { firestore, auth, storage } from "../../firebase";
+import { auth, firestore1, storage } from "../../firebase";
 import { PostContext } from "../PostContext";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
@@ -25,17 +25,17 @@ const MyPostWrite = ({ navigation }) => {
   const { addPost } = useContext(PostContext);
   const [images, setImages] = useState(Array(5).fill(null));
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedItem, setSelectedItem] = useState("---");
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-  const [day, setDay] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceOrExchange, setPriceOrExchange] = useState("");
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+  const [nickname, setNickname] = useState("닉네임 없음");
+  const [location, setLocation] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const [nickname, setNickname] = useState("");
-  const [location, setLocation] = useState(null); // 위치 상태 추가
 
+  // 닉네임 가져오기 및 위치 권한 요청
   useEffect(() => {
     const fetchNickname = async () => {
       try {
@@ -45,8 +45,7 @@ const MyPostWrite = ({ navigation }) => {
           return;
         }
 
-        const userUID = currentUser.uid;
-        const userDoc = await firestore.collection("users").doc(userUID).get();
+        const userDoc = await firestore1.collection("users").doc(currentUser.uid).get();
         if (userDoc.exists) {
           const userData = userDoc.data();
           setNickname(userData.nickname || "닉네임 없음");
@@ -67,7 +66,7 @@ const MyPostWrite = ({ navigation }) => {
         }
 
         const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High, // 위치 정확도 설정
+          accuracy: Location.Accuracy.High,
         });
         setLocation(currentLocation.coords);
       } catch (error) {
@@ -95,6 +94,7 @@ const MyPostWrite = ({ navigation }) => {
     };
   }, []);
 
+  // 이미지 추가 함수
   const handleAddImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -121,11 +121,19 @@ const MyPostWrite = ({ navigation }) => {
           return newImages;
         });
       }
-    } catch (err) {
+    } catch (error) {
       Alert.alert("오류 발생", "이미지를 선택하는 동안 문제가 발생했습니다.");
     }
   };
 
+  // 카테고리 제거 함수
+  const removeCategory = (category) => {
+    setSelectedCategories((prevCategories) =>
+      prevCategories.filter((item) => item !== category)
+    );
+  };
+
+  // 이미지 업로드
   const uploadImagesToStorage = async (images) => {
     const imageUrls = [];
     try {
@@ -148,6 +156,7 @@ const MyPostWrite = ({ navigation }) => {
     }
   };
 
+  // Firestore에 게시글 저장
   const savePostToFirestore = async (post, imageUrls) => {
     try {
       const currentUser = auth.currentUser;
@@ -156,7 +165,7 @@ const MyPostWrite = ({ navigation }) => {
         return;
       }
 
-      await firestore.collection("posts").add({
+      await firestore1.collection("posts").add({
         ...post,
         userUID: currentUser.uid,
         createdAt: new Date(),
@@ -171,6 +180,7 @@ const MyPostWrite = ({ navigation }) => {
     }
   };
 
+  // 유효성 검사 후 게시글 저장
   const validateAndSubmit = async () => {
     if (images.filter((image) => image !== null).length === 0) {
       Alert.alert("입력 오류", "사진을 하나 이상 추가해야 합니다.");
@@ -190,7 +200,6 @@ const MyPostWrite = ({ navigation }) => {
     }
 
     const post = {
-      id: Date.now().toString(),
       title,
       description,
       categories: selectedCategories,
@@ -202,11 +211,8 @@ const MyPostWrite = ({ navigation }) => {
     const imageUrls = await uploadImagesToStorage(images.filter((image) => image !== null));
 
     if (imageUrls.length > 0) {
-      addPost(post);
-      savePostToFirestore(post, imageUrls);
-      navigation.navigate("TabNavigator", {
-        screen: "내 게시판",
-      });
+      await savePostToFirestore(post, imageUrls);
+      navigation.navigate("TabNavigator", { screen: "내 게시판" });
     } else {
       Alert.alert("오류", "이미지 업로드 실패. 게시글이 저장되지 않았습니다.");
     }
@@ -220,18 +226,19 @@ const MyPostWrite = ({ navigation }) => {
         enabled={isKeyboardVisible}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Header */}
           <View style={styles.header}>
             <NavigateBefore onPress={() => navigation.goBack()} />
             <Text style={styles.title}>게시물 추가하기</Text>
-            <View style={styles.emptySpace} />
           </View>
 
+          {/* Author Section */}
           <View style={styles.authorSection}>
             <Image
               source={require("../../start-expo/assets/avatar.png")}
               style={styles.authorImage}
             />
-            <View style={styles.authorTextContainer}>
+            <View>
               <Text style={styles.authorName}>{nickname}</Text>
               <Text style={styles.authorDescription}>
                 등록할 식자재를 선택해주세요
@@ -251,7 +258,8 @@ const MyPostWrite = ({ navigation }) => {
               {images.map((uri, index) => (
                 <View
                   key={index}
-                  style={[styles.foodImagePlaceholder, !uri && { backgroundColor: "#F2F3F6" }]}>
+                  style={[styles.foodImagePlaceholder, !uri && { backgroundColor: "#F2F3F6" }]}
+                >
                   {uri && <Image source={{ uri }} style={styles.foodImage} />}
                 </View>
               ))}

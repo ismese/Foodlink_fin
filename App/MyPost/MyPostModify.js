@@ -135,7 +135,7 @@ const MyPostModify = ({ navigation, route }) => {
       await updateDoc(postRef, updatedData);
 
       Alert.alert("수정 완료", "게시물이 성공적으로 수정되었습니다.", [
-        { text: "확인", onPress: () => navigation.navigate("FeedScreen") },
+        { text: "확인", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
       console.error("게시물 수정 중 오류 발생:", error);

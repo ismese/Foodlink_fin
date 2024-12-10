@@ -161,6 +161,11 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 16,
   },
+  emptyListContainer: {
+    flex: 1, // 전체를 차지하게 함
+    justifyContent: 'center', // 세로 중앙 정렬
+    alignItems: 'center', // 가로 중앙 정렬
+  },
 });
 
 export default styles;

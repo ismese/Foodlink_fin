@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import PostHeader from "../post/PostHeader";
 import PostDescription from "../post/PostDescription";
 import styles from "../post/FeedScreen.style";
@@ -10,7 +17,7 @@ import "firebase/compat/database";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 const FeedScreen = ({ route, navigation }) => {
-  const { post } = route.params; // 전달받은 게시글 데이터
+  const { post } = route.params || {}; // 기본값 설정하여 안전하게 처리
   const [showFavoriteBox, setShowFavoriteBox] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [postOwnerNickname, setPostOwnerNickname] = useState("알 수 없음");
@@ -23,7 +30,11 @@ const FeedScreen = ({ route, navigation }) => {
   // 게시물 작성자의 닉네임 가져오기
   useEffect(() => {
     const fetchPostOwnerNickname = async () => {
-      if (!post.userUID) return;
+      if (!post?.userUID) {
+        setPostOwnerNickname("작성자 정보 없음");
+        setLoading(false);
+        return;
+      }
 
       try {
         const userDocRef = doc(firestore, "users", post.userUID);
@@ -43,8 +54,9 @@ const FeedScreen = ({ route, navigation }) => {
     };
 
     fetchPostOwnerNickname();
-  }, [post.userUID]);
+  }, [post?.userUID]);
 
+  // 시간 계산
   const calculateTimeAgo = (createdAt) => {
     const now = new Date();
     const postDate = createdAt?.toDate?.() || new Date(createdAt);
@@ -59,6 +71,7 @@ const FeedScreen = ({ route, navigation }) => {
     return `${Math.floor(diffInSeconds / 86400)}일 전`;
   };
 
+  // 찜하기 처리
   const handleFavorite = (action) => {
     setShowFavoriteBox(false);
     setFeedbackMessage(
@@ -67,20 +80,16 @@ const FeedScreen = ({ route, navigation }) => {
     setTimeout(() => setFeedbackMessage(""), 3000);
   };
 
-  const isPostOwner = currentUserUID === post.userUID; // 게시물 작성자인지 확인
+  const isPostOwner = currentUserUID === post?.userUID; // 게시물 작성자인지 확인
 
   const handleChatPress = async () => {
-    if (!currentUserUID || !post.userUID) return;
-
+    if (!currentUserUID || !post?.userUID) return;
+  
     try {
-      const chatRoomId =
-        currentUserUID < post.userUID
-          ? `${currentUserUID}_${post.userUID}`
-          : `${post.userUID}_${currentUserUID}`;
-
+      const chatRoomId = `${post.id}_${currentUserUID}_${post.userUID}`; // 고유한 chatRoomId 생성
       const chatRoomRef = db.ref(`chats/${chatRoomId}`);
       const chatRoomSnapshot = await chatRoomRef.get();
-
+  
       if (!chatRoomSnapshot.exists()) {
         const chatRoomData = {
           members: {
@@ -95,7 +104,7 @@ const FeedScreen = ({ route, navigation }) => {
         };
         await chatRoomRef.set(chatRoomData);
       }
-
+  
       navigation.navigate("ChatScreen", {
         chatRoomId,
         post,
@@ -105,9 +114,11 @@ const FeedScreen = ({ route, navigation }) => {
       Alert.alert("오류", "채팅방 생성에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
+  
+  
+  // 수정 버튼 클릭 처리
   const handleModifyPress = () => {
-    if (!post.id) {
+    if (!post?.id) {
       Alert.alert("오류", "Firestore 문서 ID가 유효하지 않습니다.");
       return;
     }
@@ -119,6 +130,14 @@ const FeedScreen = ({ route, navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!post) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>게시물 데이터를 불러오지 못했습니다.</Text>
       </SafeAreaView>
     );
   }
@@ -169,23 +188,11 @@ const FeedScreen = ({ route, navigation }) => {
             <Text style={styles.chatButtonText}>수정하기</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={styles.chatButton}
-            onPress={handleChatPress}
-          >
+          <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
             <Text style={styles.chatButtonText}>채팅하기</Text>
           </TouchableOpacity>
         )}
       </View>
-
-      {/* 찜 확인 박스 */}
-      {showFavoriteBox && (
-        <FavoriteBox
-          onConfirm={() => handleFavorite("confirm")}
-          onCancel={() => handleFavorite("cancel")}
-          styles={styles}
-        />
-      )}
     </SafeAreaView>
   );
 };

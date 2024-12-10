@@ -6,9 +6,9 @@ import MyScreen from "../Screens/Myscreen/MyScreen";
 import RecipeCommunityScreen from "../Screens/RecipeCommunityScreen/Page";
 import ChatScreen from "../Screens/ChatScreen/ChatScreen";
 import CustomHeader from "./CustomHeader";
+import BoardScreen from "../Board/BoardScreen";
 
 const Tab = createBottomTabNavigator();
-
 
 const TAB_TITLES = {
   홈: "홈",
@@ -24,6 +24,13 @@ const ICONS = {
   "동네 지도": { focused: "map", unfocused: "map-outline" },
   채팅: { focused: "chatbubble", unfocused: "chatbubble-outline" },
   "내 게시판": { focused: "clipboard", unfocused: "clipboard-outline" },
+};
+
+// "홈" 탭에 사용할 기본 컴포넌트 설정
+const DefaultHomeScreen = () => {
+  return (
+    <MapScreen /> // 기본적으로 MapScreen을 렌더링
+  );
 };
 
 const TabNavigator = () => {
@@ -49,7 +56,7 @@ const TabNavigator = () => {
     >
       <Tab.Screen
         name="홈"
-        component={HomeScreen}
+        component={BoardScreen} // HomeScreen 대신 DefaultHomeScreen으로 대체
         options={{
           header: () => <CustomHeader title="홈" />,
         }}

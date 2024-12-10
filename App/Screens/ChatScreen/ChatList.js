@@ -13,40 +13,41 @@ const ChatList = ({ setCurrentRoomId, createChatRoom }) => {
     const db = getDatabase();
     const chatListRef = ref(db, 'chats');
 
+    // Firebase에서 채팅 목록 데이터 가져오기
     const unsubscribe = onValue(chatListRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('Firebase Loaded Data:', data);
 
       if (data) {
         const chats = Object.keys(data).map((key) => ({
           id: key,
-          lastMessage: data[key].lastMessage || '아직 대화를 하지 않았습니다.',
-          lastMessageTime: data[key].lastMessageTime
+          lastMessage: data[key]?.lastMessage || '아직 대화를 하지 않았습니다.',
+          lastMessageTime: data[key]?.lastMessageTime
             ? new Date(data[key].lastMessageTime).toLocaleString()
             : '시간 정보 없음',
           post: {
-            id: data[key].postId || 'unknown',
-            title: data[key].postTitle || '제목 없음',
+            id: data[key]?.postId || 'unknown',
+            title: data[key]?.postTitle || '제목 없음',
           },
         }));
-        console.log('Processed Chat List:', chats);
         setChatList(chats);
       } else {
-        console.warn('No chats found in Firebase');
         setChatList([]);
       }
       setIsLoading(false);
     });
 
+    // 컴포넌트 언마운트 시 Firebase 리스너 제거
     return () => unsubscribe();
   }, []);
 
+  // 채팅방 클릭 시 동작
   const handleChatClick = (chatRoomId, post) => {
     if (!chatRoomId) {
       console.error('ChatRoomId is missing!');
       return;
     }
-    console.log('Navigating to ChatScreen with:', { chatRoomId, post });
+
+    console.log(`Navigating to ChatScreen with chatRoomId: ${chatRoomId}, post:`, post);
     setCurrentRoomId(chatRoomId);
     navigation.navigate('ChatScreen', {
       chatRoomId,
