@@ -12,6 +12,7 @@ const CategoryScreen = ({ navigation, route }) => {
       { id: '3', name: '곡류', icon: '🌾' },
       { id: '4', name: '견과류', icon: '🥜' },
     ],
+    
     축산물: [
       { id: '5', name: '육류', icon: '🍖' },
       { id: '6', name: '계란', icon: '🥚' },
@@ -59,6 +60,10 @@ const CategoryScreen = ({ navigation, route }) => {
       >
         {category}
       </Text>
+      
+    {/* 구분선 */}
+    <View style={styles.separator} />
+
       <View style={styles.items}>
         {categories[category].map((item) => (
           <TouchableOpacity
@@ -90,6 +95,7 @@ const CategoryScreen = ({ navigation, route }) => {
         renderItem={renderCategory}
         contentContainerStyle={styles.listContainer}
       />
+      
     </SafeAreaView>
   );
 };

@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   header: {
+    
     flexDirection: "row",
     justifyContent: "space-between", // 제목과 점 세 개 버튼을 양쪽 끝으로 배치
     alignItems: "center",
@@ -53,6 +54,7 @@ export const styles = StyleSheet.create({
     marginLeft: 16,
   },
   actionText: {
+    
     fontSize: 12,
     color: "#8C8C8C",
     marginLeft: 4,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TextInput, SafeAreaView, Text, TouchableOpacity, Alert } from "react-native";
+import { View, TextInput, SafeAreaView, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { styles } from "../../../styles/RecipeCommunity/CmPostChat.style";
 import NavigateBefore from "../../../components/NavigateBefore";
 import CmPostDetail from "../Community/CmPostDetail";
@@ -66,42 +66,50 @@ const CmPostChat = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <View style={styles.header}>
-        <NavigateBefore onPress={() => navigation.goBack()} />
-        <Text style={styles.title}>커뮤니티</Text>
-        <View style={styles.emptySpace} />
-      </View>
-
-      {/* 글 디테일 */}
-      {post && post.id ? (
-        <CmPostDetail post={post} /> // post 객체 전달
-      ) : (
-        <Text style={styles.errorText}>게시물 데이터를 불러올 수 없습니다.</Text>
-      )}
-
-      {/* 댓글창 */}
-      {post.id && (
-        <CommentList postId={post.id} /> // postId 전달
-      )}
-
-      {/* 댓글 입력창 */}
-      {post.id && (
-        <View style={styles.commentInputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="댓글을 입력하세요"
-            placeholderTextColor="#8C8C8C"
-            value={comment}
-            onChangeText={setComment}
-          />
-          <TouchableOpacity onPress={handleCommentSubmit}>
-            <MaterialIcons name="send" size={24} color="#2D754E" style={{ marginLeft: 14 }} />
-          </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // iOS에서는 헤더 높이 보정 필요
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
+        <View style={styles.header}>
+          <NavigateBefore onPress={() => navigation.goBack()} />
+          <Text style={styles.title}>커뮤니티</Text>
+          <View style={styles.emptySpace} />
         </View>
-      )}
-    </SafeAreaView>
+
+        {/* 글 디테일 */}
+        {post && post.id ? (
+          <CmPostDetail post={post} /> // post 객체 전달
+        ) : (
+          <Text style={styles.errorText}>게시물 데이터를 불러올 수 없습니다.</Text>
+        )}
+
+        {/* 댓글창 */}
+        {post.id && (
+          <CommentList postId={post.id} /> // postId 전달
+        )}
+
+        {/* 댓글 입력창 */}
+        {post.id && (
+          <View style={styles.commentInputContainer}>
+            <TextInput
+              style={styles.commentInput}
+              placeholder="댓글을 입력하세요"
+              placeholderTextColor="#8C8C8C"
+              value={comment}
+              onChangeText={setComment}
+              returnKeyType="send"
+              onSubmitEditing={handleCommentSubmit} // 엔터 키로 댓글 전송
+            />
+            <TouchableOpacity onPress={handleCommentSubmit}>
+              <MaterialIcons name="send" size={24} color="#2D754E" style={{ marginLeft: 14 }} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 

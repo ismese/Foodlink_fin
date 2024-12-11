@@ -8,11 +8,15 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { styles } from "../../../styles/RecipeCommunity/RecipePost.style";
 import NavigateBefore from "../../../components/NavigateBefore"; // NavigateBefore 컴포넌트
 import * as ImagePicker from "expo-image-picker"; // 이미지 추가 라이브러리
-import { getFirestore, collection, addDoc, doc, getDoc,  } from "firebase/firestore";
+import { getFirestore, collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { app2 } from "../../../../firebase"; // Firebase 초기화
 import { uploadImageToCloudinary } from "../../../services/cloudinaryService"; // Cloudinary 업로드 유틸리티
 import { getAuth } from "firebase/auth"; // Firebase Auth 가져오기
@@ -23,11 +27,10 @@ const RecipePost = ({ navigation }) => {
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
   const [nickname, setNickname] = useState(""); // 사용자 닉네임 상태 추가
-  
+
   const auth = getAuth(); // 형 Firebase Auth
   const db = getFirestore(app2); // 본인 Firebase Firestore
   const usersDb = getFirestore(); // 형 Firebase Firestore
-
 
   // 사용자 닉네임 가져오기
   useEffect(() => {
@@ -105,71 +108,81 @@ const RecipePost = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <View style={styles.header}>
-        <NavigateBefore onPress={() => navigation.goBack()} />
-        <Text style={styles.title}>레시피 추가</Text>
-        <View style={styles.emptySpace} />
-      </View>
-
-      {/* 이미지 추가 섹션 */}
-      <View style={styles.imageSection}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.recipeImagesContainer}
-        >
-          <TouchableOpacity style={styles.addImageBox} onPress={handleAddImage}>
-            <Text style={styles.addImageText}>+</Text>
-          </TouchableOpacity>
-          {images.map((uri, index) => (
-            <View key={index} style={styles.recipeImagePlaceholder}>
-              <Image source={{ uri }} style={styles.recipeImage} />
+      {/* KeyboardAvoidingView로 키보드가 가리지 않도록 설정 */}
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <NavigateBefore onPress={() => navigation.goBack()} />
+              <Text style={styles.title}>레시피 추가</Text>
+              <View style={styles.emptySpace} />
             </View>
-          ))}
-        </ScrollView>
-      </View>
 
-      {/* 제목 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>제목을 작성해주세요.</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="제목을 입력하세요"
-          value={title}
-          onChangeText={setTitle}
-        />
-      </View>
+            {/* 이미지 추가 섹션 */}
+            <View style={styles.imageSection}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recipeImagesContainer}
+              >
+                <TouchableOpacity style={styles.addImageBox} onPress={handleAddImage}>
+                  <Text style={styles.addImageText}>+</Text>
+                </TouchableOpacity>
+                {images.map((uri, index) => (
+                  <View key={index} style={styles.recipeImagePlaceholder}>
+                    <Image source={{ uri }} style={styles.recipeImage} />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
 
-      {/* 재료 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>재료를 작성해주세요.</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="재료를 입력하세요"
-          value={ingredients}
-          onChangeText={setIngredients}
-        />
-      </View>
+            {/* 제목 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>제목을 작성해주세요.</Text>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
 
-      {/* 조리 순서 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>조리 순서를 작성해주세요.</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="조리 순서를 입력하세요"
-          multiline
-          value={instructions}
-          onChangeText={setInstructions}
-        />
-      </View>
+            {/* 재료 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>재료를 작성해주세요.</Text>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="재료를 입력하세요"
+                value={ingredients}
+                onChangeText={setIngredients}
+              />
+            </View>
 
-      {/* 추가하기 버튼 */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleAddRecipe}>
-          <Text style={styles.submitButtonText}>추가하기</Text>
-        </TouchableOpacity>
-      </View>
+            {/* 조리 순서 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>조리 순서를 작성해주세요.</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="조리 순서를 입력하세요"
+                multiline
+                value={instructions}
+                onChangeText={setInstructions}
+              />
+            </View>
+
+            {/* 추가하기 버튼 */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.submitButton} onPress={handleAddRecipe}>
+                <Text style={styles.submitButtonText}>추가하기</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

@@ -8,6 +8,10 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { styles } from "../../../styles/RecipeCommunity/ModfiyRecipe.style";
 import NavigateBefore from "../../../components/NavigateBefore"; // NavigateBefore 컴포넌트
@@ -39,8 +43,6 @@ const ModifyRecipe = ({ navigation, route }) => {
 
     if (!pickerResult.canceled && pickerResult.assets?.length > 0) {
       const selectedImage = pickerResult.assets[0].uri; // 선택한 이미지 URI
-      console.log("선택된 이미지 URI:", selectedImage);
-
       try {
         const uploadedImageUrl = await uploadImageToCloudinary(selectedImage);
         setImages((prevImages) => {
@@ -96,89 +98,101 @@ const ModifyRecipe = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <View style={styles.header}>
-        <NavigateBefore onPress={() => navigation.goBack()} />
-        <Text style={styles.title}>레시피 수정</Text>
-        <View style={styles.emptySpace} />
-      </View>
-
-      {/* 이미지 추가 섹션 */}
-      <View style={styles.imageSection}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.recipeImagesContainer}
-        >
-          <TouchableOpacity style={styles.addImageBox} onPress={handleAddImage}>
-            <Text style={styles.addImageText}>+</Text>
-          </TouchableOpacity>
-          {images.map((uri, index) => (
-            <View
-              key={index}
-              style={[
-                styles.recipeImagePlaceholder,
-                !uri && { backgroundColor: "#F2F3F6" },
-              ]}
-            >
-              {uri ? (
-                <>
-                  <Image source={{ uri }} style={styles.recipeImage} />
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteImage(index)}
-                  >
-                    <Text style={styles.deleteButtonText}>삭제</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text style={styles.placeholderText}>이미지 없음</Text>
-              )}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <NavigateBefore onPress={() => navigation.goBack()} />
+              <Text style={styles.title}>레시피 수정</Text>
+              <View style={styles.emptySpace} />
             </View>
-          ))}
-        </ScrollView>
-      </View>
 
-      {/* 제목 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>제목을 수정해주세요.</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="제목을 입력하세요"
-          value={title}
-          onChangeText={setTitle}
-        />
-      </View>
+            {/* 이미지 추가 섹션 */}
+            <View style={styles.imageSection}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recipeImagesContainer}
+              >
+                <TouchableOpacity style={styles.addImageBox} onPress={handleAddImage}>
+                  <Text style={styles.addImageText}>+</Text>
+                </TouchableOpacity>
+                {images.map((uri, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.recipeImagePlaceholder,
+                      !uri && { backgroundColor: "#F2F3F6" },
+                    ]}
+                  >
+                    {uri ? (
+                      <>
+                        <Image source={{ uri }} style={styles.recipeImage} />
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={() => handleDeleteImage(index)}
+                        >
+                          <Text style={styles.deleteButtonText}>삭제</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <Text style={styles.placeholderText}>이미지 없음</Text>
+                    )}
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
 
-      {/* 재료 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>재료를 수정해주세요.</Text>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="재료를 입력하세요"
-          value={ingredients}
-          onChangeText={setIngredients}
-        />
-      </View>
+            {/* 제목 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>제목을 수정해주세요.</Text>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
 
-      {/* 조리 순서 섹션 */}
-      <View style={styles.inputSection}>
-        <Text style={styles.labelText}>조리순서를 수정해주세요.</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="허위 식자재와 사기 등 위법행위에 대한 작성은 Food Link를 이용 제재 당할 수 있습니다."
-          multiline
-          value={instructions}
-          onChangeText={setInstructions}
-        />
-      </View>
+            {/* 재료 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>재료를 수정해주세요.</Text>
+              <TextInput
+                style={styles.inputBox}
+                placeholder="재료를 입력하세요"
+                value={ingredients}
+                onChangeText={setIngredients}
+              />
+            </View>
 
-      {/* 수정하기 버튼 */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleUpdateRecipe}>
-          <Text style={styles.submitButtonText}>수정하기</Text>
-        </TouchableOpacity>
-      </View>
+            {/* 조리 순서 섹션 */}
+            <View style={styles.inputSection}>
+              <Text style={styles.labelText}>조리순서를 수정해주세요.</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="조리 순서를 입력하세요"
+                multiline
+                value={instructions}
+                onChangeText={setInstructions}
+              />
+            </View>
+
+            {/* 수정하기 버튼 */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.submitButton} onPress={handleUpdateRecipe}>
+                <Text style={styles.submitButtonText}>수정하기</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

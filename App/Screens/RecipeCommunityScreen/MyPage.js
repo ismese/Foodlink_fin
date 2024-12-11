@@ -12,23 +12,54 @@ import { styles } from "../RecipeCommunityScreen/MyPage.style";
 import CmPostList from "./Community/CmPostList"; // CmPostList 컴포넌트
 import RecipeList from "../RecipeCommunityScreen/Recipe/RecipeList"; // RecipeList 컴포넌트
 import * as ImagePicker from "expo-image-picker";
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore"; // Firestore 관련 추가
+import { getFirestore, collection, getDocs, addDoc, query, where, getDoc, doc } from "firebase/firestore"; // Firestore 관련 추가
 import { app2 } from "../../../firebase";
 import { uploadImageToCloudinary } from "../../services/cloudinaryService"; // Cloudinary 업로드 함수 추가
+import { getAuth } from "firebase/auth"; // Firebase 인증 추가
 
 const MyPage = () => {
   const navigation = useNavigation();
   const [ingredients, setIngredients] = useState([]); // Firestore 이미지 데이터 상태
   const [selectedTab, setSelectedTab] = useState("레시피"); // 현재 선택된 탭 상태
+  const [nickname, setNickname] = useState("사용자"); // 닉네임 상태 추가
   const db = getFirestore(app2); // Firestore 데이터베이스 가져오기
+  const auth = getAuth(); // Firebase 인증 가져오기
+  const usersDb = getFirestore(); // 형 Firestore 가져오기
 
-  // Firestore에서 이미지 데이터 불러오기
+  // 🔥 로그인한 사용자의 닉네임 가져오기 (형의 Firestore에서 가져오기)
+  const fetchUserNickname = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("로그인된 사용자가 없습니다.");
+
+      const uid = user.uid;
+      const userRef = doc(usersDb, "users", uid); // 형 Firestore에서 사용자 문서 참조
+      const userSnapshot = await getDoc(userRef);
+
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.data();
+        setNickname(userData.nickname || "사용자");
+        console.log("닉네임 가져오기 성공:", userData.nickname);
+      } else {
+        console.error("형 Firestore에서 사용자 정보를 찾을 수 없습니다.");
+      }
+    } catch (err) {
+      console.error("닉네임을 가져오는 중 오류:", err);
+    }
+  };
+
+  // 🔥 Firestore에서 URL 불러오기 (닉네임 필터링)
   const fetchIngredients = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "냉장고"));
+      const q = query(
+        collection(db, "냉장고"),
+        where("nickname", "==", nickname) // 현재 로그인한 사용자의 닉네임으로 필터링
+      );
+      const querySnapshot = await getDocs(q);
       const imageList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         url: doc.data().url,
+        nickname: doc.data().nickname || "사용자", // 닉네임 추가
       }));
       setIngredients(imageList);
     } catch (error) {
@@ -36,15 +67,22 @@ const MyPage = () => {
     }
   };
 
+  // 🔥 화면 로드 시 Firestore에서 이미지 URL 불러오기 및 닉네임 불러오기
   useEffect(() => {
-    fetchIngredients(); // 컴포넌트 마운트 시 데이터 로드
+    fetchUserNickname();
   }, []);
+
+  useEffect(() => {
+    if (nickname) {
+      fetchIngredients();
+    }
+  }, [nickname]);
 
   // Navigation Focus 시 데이터 갱신
   useFocusEffect(
     React.useCallback(() => {
       fetchIngredients();
-    }, [])
+    }, [nickname])
   );
 
   // 이미지 추가 핸들러
@@ -69,12 +107,13 @@ const MyPage = () => {
         const docRef = await addDoc(collection(db, "냉장고"), {
           url: uploadedUrl,
           createdAt: new Date(), // 업로드 시간 추가
+          nickname: nickname, // 사용자 닉네임 추가
         });
 
         // 상태 업데이트
         setIngredients((prev) => [
           ...prev,
-          { id: docRef.id, url: uploadedUrl, createdAt: new Date() },
+          { id: docRef.id, url: uploadedUrl, createdAt: new Date(), nickname: nickname },
         ]);
 
         Alert.alert("이미지 추가", "이미지가 성공적으로 추가되었습니다!");

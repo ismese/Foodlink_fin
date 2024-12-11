@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActionSheetIOS,
+  Alert,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigation } from "@react-navigation/native";
 import { app2 } from "../../../../firebase"; // 본인 Firebase Firestore 초기화
 
-const RecipeList = () => {
+const MyRecipeList = () => {
   const [recipes, setRecipes] = useState([]);
   const [userNickname, setUserNickname] = useState(""); // 현재 사용자 닉네임
   const db = getFirestore(app2); // 본인 Firebase Firestore
@@ -53,30 +63,58 @@ const RecipeList = () => {
 
   // 레시피 삭제 핸들러
   const handleDeleteRecipe = async (recipeId) => {
-    Alert.alert(
-      "삭제 확인",
-      "정말로 이 레시피를 삭제하시겠습니까?",
-      [
-        { text: "취소", style: "cancel" },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteDoc(doc(db, "recipe", recipeId)); // Firestore에서 해당 레시피 삭제
-              setRecipes((prevRecipes) =>
-                prevRecipes.filter((recipe) => recipe.id !== recipeId)
-              ); // 로컬 상태 업데이트
-              Alert.alert("삭제 성공", "레시피가 성공적으로 삭제되었습니다.");
-            } catch (error) {
-              console.error("레시피 삭제 중 오류:", error);
-              Alert.alert("삭제 실패", "레시피를 삭제하지 못했습니다.");
-            }
-          },
-        },
-      ],
-      { cancelable: true }
+    try {
+      await deleteDoc(doc(db, "recipe", recipeId)); // Firestore에서 해당 레시피 삭제
+      setRecipes((prevRecipes) =>
+        prevRecipes.filter((recipe) => recipe.id !== recipeId)
+      ); // 로컬 상태 업데이트
+      Alert.alert("삭제 성공", "레시피가 성공적으로 삭제되었습니다.");
+    } catch (error) {
+      console.error("레시피 삭제 중 오류:", error);
+      Alert.alert("삭제 실패", "레시피를 삭제하지 못했습니다.");
+    }
+  };
+
+  // 옵션 버튼 핸들러
+  const showOptions = (recipe) => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ["게시글 수정", "삭제", "닫기"],
+        destructiveButtonIndex: 1, // "삭제"를 빨간색으로 표시
+        cancelButtonIndex: 2, // "닫기" 버튼의 인덱스
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          // 수정 화면으로 이동
+          navigation.navigate("ModifyRecipe", { recipe }); // recipe 데이터 전달
+        } else if (buttonIndex === 1) {
+          Alert.alert(
+            "게시물 삭제",
+            "정말로 삭제하시겠습니까?",
+            [
+              { text: "취소", style: "cancel" },
+              {
+                text: "삭제",
+                onPress: () => handleDeleteRecipe(recipe.id),
+              },
+            ],
+            { cancelable: true }
+          );
+        }
+      }
     );
+  };
+
+  // 데이터가 홀수일 때 빈 카드 추가
+  const formatData = (data, numColumns) => {
+    const numberOfFullRows = Math.floor(data.length / numColumns);
+    let numberOfElementsLastRow = data.length - numberOfFullRows * numColumns;
+
+    while (numberOfElementsLastRow !== numColumns && numberOfElementsLastRow !== 0) {
+      data.push({ id: `blank-${numberOfElementsLastRow}`, empty: true });
+      numberOfElementsLastRow++;
+    }
+    return data;
   };
 
   useEffect(() => {
@@ -91,45 +129,42 @@ const RecipeList = () => {
 
   return (
     <FlatList
-      data={recipes}
+      data={formatData(recipes, 2)} // 2열 데이터 정렬
       keyExtractor={(item) => item.id}
       numColumns={2}
       columnWrapperStyle={styles.row}
-      renderItem={({ item }) => (
-        <View style={styles.recipeCard}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("NewIngredients", { recipe: item })}
-          >
-            <View style={styles.recipeImage}>
-              {item.images && item.images.length > 0 ? (
-                <Image source={{ uri: item.images[0] }} style={styles.image} />
-              ) : (
-                <View style={styles.placeholderImage}>
-                  <Text style={styles.placeholderText}>이미지 없음</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.recipeInfo}>
-              <Text style={styles.recipeTitle}>{item.title || "제목 없음"}</Text>
-              <Text style={styles.recipeAuthor}>작성자: {item.nickname || "작성자 없음"}</Text>
-            </View>
-          </TouchableOpacity>
-          <View style={styles.buttonRow}>
+      renderItem={({ item }) => {
+        if (item.empty) {
+          return <View style={[styles.recipeCard, styles.invisibleCard]} />;
+        }
+        return (
+          <View style={styles.recipeCard}>
             <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => navigation.navigate("ModifyRecipe", { recipe: item })}
+              onPress={() => navigation.navigate("NewIngredients", { recipe: item })}
             >
-              <Text style={styles.editButtonText}>수정</Text>
+              <View style={styles.recipeImage}>
+                {item.images && item.images.length > 0 ? (
+                  <Image source={{ uri: item.images[0] }} style={styles.image} />
+                ) : (
+                  <View style={styles.placeholderImage}>
+                    <Text style={styles.placeholderText}>이미지 없음</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.recipeInfo}>
+                <Text style={styles.recipeTitle}>{item.title || "제목 없음"}</Text>
+                <Text style={styles.recipeAuthor}>{item.nickname || "작성자 없음"}</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteRecipe(item.id)}
+              style={styles.optionsButton}
+              onPress={() => showOptions(item)}
             >
-              <Text style={styles.deleteButtonText}>삭제</Text>
+              <MaterialIcons name="more-vert" size={14} color="#8E8E8E" />
             </TouchableOpacity>
           </View>
-        </View>
-      )}
+        );
+      }}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -137,26 +172,30 @@ const RecipeList = () => {
 
 const styles = StyleSheet.create({
   row: {
-    justifyContent: "space-between",
+    justifyContent: "space-between", // 각 열의 아이템 사이 간격
     marginBottom: 10,
   },
   recipeCard: {
-    flex: 1,
-    marginHorizontal: 5,
+    flex: 1, // 2열로 나누기 위해 flex를 1로 설정
+    marginHorizontal: 5, // 카드 간격
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
     overflow: "hidden",
-    elevation: 2,
-    shadowColor: "#000",
+    elevation: 2, // 그림자 효과 (Android)
+    shadowColor: "#000", // 그림자 효과 (iOS)
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    padding: 10,
+    position: "relative", // 옵션 버튼 위치 조정을 위해
+  },
+  invisibleCard: {
+    backgroundColor: "transparent",
+    elevation: 0, // 그림자 제거
   },
   recipeImage: {
     width: "100%",
     height: 160,
-    backgroundColor: "#F2F3F6",
+    backgroundColor: "#F2F3F6", // 회색 배경
     justifyContent: "center",
     alignItems: "center",
   },
@@ -175,6 +214,7 @@ const styles = StyleSheet.create({
   },
   recipeInfo: {
     padding: 10,
+    position: "relative",
   },
   recipeTitle: {
     color: "black",
@@ -185,34 +225,14 @@ const styles = StyleSheet.create({
   recipeAuthor: {
     color: "#8C8C8C",
     fontSize: 12,
+    marginBottom: 5,
   },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  editButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 8,
-    borderRadius: 5,
-    flex: 0.48,
-  },
-  deleteButton: {
-    backgroundColor: "#E53935",
-    paddingVertical: 8,
-    borderRadius: 5,
-    flex: 0.48,
-  },
-  editButtonText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 14,
-  },
-  deleteButtonText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 14,
+  optionsButton: {
+    position: "absolute",
+    right: 0,
+    bottom: 30,
+    padding: 5,
   },
 });
 
-export default RecipeList;
+export default MyRecipeList;

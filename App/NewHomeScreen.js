@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MapScreen from '../App/Login/MapScreen';
+import MapScreen from '../App/MapScreen';
 import MyScreen from './Screens/Myscreen/MyScreen';
 import RecipeCommunityScreen from './Screens/RecipeCommunityScreen/Page';
 import ChatScreen from './Screens/ChatScreen/ChatScreen';

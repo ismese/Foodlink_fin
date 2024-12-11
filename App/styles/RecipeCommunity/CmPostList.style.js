@@ -5,9 +5,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  listContent: {
-    paddingVertical: 8,
-  },
   postContainer: {
     marginBottom: 12,
   },

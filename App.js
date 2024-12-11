@@ -36,7 +36,7 @@ import NewIngredients from "./App/Screens/RecipeCommunityScreen/Ingredients/NewI
 import ChatList from "./App/Screens/ChatScreen/ChatList";
 import ChatScreen from "./App/Screens/ChatScreen/ChatScreen";
 import { auth } from "./firebase"; // Firebase 인증 모듈 import
-
+import SearchSearch from "./App/Search/SearchSearch";
 // Stack Navigator 생성
 const Stack = createStackNavigator();
 
@@ -98,7 +98,8 @@ export default function App() {
           <Stack.Screen name="NewIngredients" component={NewIngredients} />
           <Stack.Screen name="ChatList" component={ChatList} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        </Stack.Navigator>
+          <Stack.Screen name="SearchSearch" component={SearchSearch} />
+          </Stack.Navigator>
       </NavigationContainer>
     </PostProvider>
   );

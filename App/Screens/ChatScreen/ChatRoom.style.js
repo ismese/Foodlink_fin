@@ -140,6 +140,12 @@ confirmButtonText: {
   fontSize: 13,
   fontWeight: 'bold',
 },
+closeButton: {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  zIndex: 10,
+},
 
 });
 

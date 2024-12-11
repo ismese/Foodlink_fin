@@ -212,7 +212,7 @@ const MyPostWrite = ({ navigation }) => {
 
     if (imageUrls.length > 0) {
       await savePostToFirestore(post, imageUrls);
-      navigation.navigate("TabNavigator", { screen: "내 게시판" });
+      navigation.navigate("Main", { screen: "내 게시판" });
     } else {
       Alert.alert("오류", "이미지 업로드 실패. 게시글이 저장되지 않았습니다.");
     }

@@ -1,34 +1,19 @@
-import React, { useEffect, useState, useContext } from "react";
-import {
-  SafeAreaView,
-  FlatList,
-  Alert,
-  TouchableOpacity,
-  View,
-  Image,
-  Text,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { styles } from "./BoardScreen.style";
-import { PostContext } from "../PostContext";
-import {
-  getFirestore,
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { useRoute } from "@react-navigation/native";
+import React, { useEffect, useState, useContext } from 'react';
+import { SafeAreaView, Text, View, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { styles } from './SearchSearch.style'; // 스타일 경로 수정
+import { PostContext } from '../PostContext';
+import NavigateBefore from '../components/NavigateBefore';  // NavigateBefore 버튼 임포트
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc } from 'firebase/firestore'; // doc, getDoc 임포트 추가
+import { getAuth } from 'firebase/auth';
+import { useRoute } from '@react-navigation/native';
 
-const BoardScreen = ({ navigation }) => {
+const SearchSearch = ({ route, navigation }) => {
+  const { searchQuery } = route.params; // 검색어 받아오기
   const { addFavorite, favorites } = useContext(PostContext);
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [userLocation, setUserLocation] = useState(null); // 사용자 위치 상태 추가
-  const route = useRoute(); // route 정보 가져오기
   const db = getFirestore();
   const auth = getAuth();
 
@@ -83,7 +68,6 @@ const BoardScreen = ({ navigation }) => {
 
   // 검색어를 통해 게시글 필터링
   useEffect(() => {
-    const searchQuery = route.params?.searchQuery || ""; // 검색어 가져오기
     if (searchQuery.trim()) {
       const filtered = posts.filter((post) =>
         post.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -92,7 +76,7 @@ const BoardScreen = ({ navigation }) => {
     } else {
       setFilteredPosts(posts);
     }
-  }, [route.params?.searchQuery, posts]);
+  }, [searchQuery, posts]);
 
   // 거리 계산 함수
   const calculateDistance = (loc1, loc2) => {
@@ -128,7 +112,11 @@ const BoardScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 게시글 목록 */}
+      {/* 뒤로 가기 버튼 */}
+      <View style={styles.header}>
+        <NavigateBefore onPress={() => navigation.goBack()} />
+        <Text style={styles.headerTitle}>검색 결과</Text>
+      </View>
       <FlatList
         data={filteredPosts} // 필터링된 게시글 데이터
         keyExtractor={(item) => item.id.toString()}
@@ -213,4 +201,4 @@ const Post = ({ item, userLocation, calculateDistance, onFavorite }) => {
   );
 };
 
-export default BoardScreen;
+export default SearchSearch;

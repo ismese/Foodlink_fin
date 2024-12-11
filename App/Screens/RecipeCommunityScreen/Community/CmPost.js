@@ -49,9 +49,6 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
       {/* 게시물 제목과 옵션 버튼 */}
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity onPress={onOptionsPress} style={styles.optionsButton}>
-          <MaterialIcons name="more-vert" size={15} color="#8C8C8C" />
-        </TouchableOpacity>
       </View>
 
       {/* 게시물 내용 */}
@@ -59,9 +56,7 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
 
       {/* 게시물 정보 */}
       <View style={styles.infoContainer}>
-        <MaterialIcons name="location-on" size={12} color="#8C8C8C" />
-        <Text style={styles.infoText}>{distance}</Text>
-        <Text style={styles.infoSeparator}>·</Text>
+        
         <Text style={styles.infoText}>{time}</Text>
       </View>
 

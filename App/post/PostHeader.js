@@ -1,22 +1,28 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image } from "react-native";
+import PostDescription from "./PostDescription";
 
-const PostHeader = ({ post, calculateTimeAgo, onBackPress, styles }) => (
-  <View style={styles.content}>
-    <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-      <Text style={styles.backText}>←</Text>
-    </TouchableOpacity>
+const PostHeader = ({ post, calculateTimeAgo, styles, postOwnerNickname }) => (
+  <View style={styles.container}>
     <Image source={{ uri: post.images[0] }} style={styles.postImage} />
-    <View style={styles.titleSection}>
-      <View style={styles.titleHeader}>
-        <View style={styles.categoryDot} />
-        <Text style={styles.title}>{post.title}</Text>
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.category}>{post.category}</Text>
-        <Text style={styles.timeAgo}>{calculateTimeAgo(post.createdAt)}</Text>
+    <View style={styles.profileContainer}>
+      <Image
+        source={require("../../start-expo/assets/avatar.png")}
+        style={styles.profileImage}
+      />
+      <View style={styles.textContainer}>
+        <Text style={styles.nameText}>{postOwnerNickname || "작성자 없음"}</Text>
       </View>
     </View>
+
+    <View style={styles.separator} />
+
+    <PostDescription
+      post={post}
+      calculateTimeAgo={calculateTimeAgo}
+      description={post.description}
+      styles={styles}
+    />
   </View>
 );
 

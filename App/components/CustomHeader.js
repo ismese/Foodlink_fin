@@ -46,7 +46,8 @@ const CustomHeader = ({ title }) => {
       Alert.alert('검색어를 입력하세요.');
       return;
     }
-    navigation.navigate('BoardScreen', { searchQuery: searchQuery.trim() }); // 검색어 전달
+    navigation.navigate('SearchSearch', { searchQuery: searchQuery.trim() });
+
   };
 
   return (
@@ -118,12 +119,7 @@ const CustomHeader = ({ title }) => {
                   style={headerStyles.selectedItemTouchable}
                 >
                   <Text style={headerStyles.selectedItem}>{item}</Text>
-                  <Ionicons
-                    name="close-outline"
-                    size={14}
-                    color="gray"
-                    style={headerStyles.removeIcon}
-                  />
+                  
                 </TouchableOpacity>
               ))}
             </ScrollView>

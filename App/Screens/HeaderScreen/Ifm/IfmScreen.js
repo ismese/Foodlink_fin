@@ -3,50 +3,46 @@ import { View, Text, TouchableOpacity, Image, Alert, SafeAreaView } from "react-
 import { styles } from "../Ifm/Ifm.Style";
 import { MaterialIcons } from "@expo/vector-icons";
 import NavigateBefore from "../../../components/NavigateBefore";
-import { getAuth } from "firebase/auth"; // Firebase Auth
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"; // Firestore 관련 함수 추가
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
+import { getFirestore, doc, deleteDoc, onSnapshot } from "firebase/firestore";
 
 const IfmScreen = ({ navigation }) => {
-  const [rating, setRating] = useState(0); 
-  const [nickname, setNickname] = useState("");  // 사용자 닉네임 상태
-  const [co2Reduction, setCo2Reduction] = useState(0);  // 절감된 CO2 상태
+  const [rating, setRating] = useState(0); // Firestore에서 가져온 평균 별점
+  const [nickname, setNickname] = useState(""); // 사용자 닉네임 상태
+  const [co2Reduction, setCo2Reduction] = useState(0); // 절감된 CO2 상태
 
-  // Firebase Auth와 Firestore를 사용하기 위한 초기화
-  const auth = getAuth();
-  const db = getFirestore();
+  const auth = getAuth(); // Firebase 인증 초기화
+  const db = getFirestore(); // Firestore 초기화
 
-  // 사용자 정보 및 탄소 배출 절감량 가져오는 함수
+  // 사용자 정보 실시간 구독
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
+    const user = auth.currentUser;
 
-      if (user) {
-        // Firestore에서 사용자 닉네임 가져오기
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setNickname(userDoc.data().nickname || "사용자");
+    if (!user) return;
+
+    // Firestore에서 사용자 데이터 구독
+    const userDocRef = doc(db, "users", user.uid);
+    const unsubscribeUser = onSnapshot(
+      userDocRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          setNickname(userData.nickname || "사용자");
+          setRating(userData.averageRating || 0); // 평균 별점
+          setCo2Reduction(userData.carbonFootprint || 0); // 탄소 배출 절감량
         }
-
-        // 거래 데이터에서 CO2 절감량 합산하기
-        const transactionsRef = collection(db, "transactions");
-        const q = query(transactionsRef, where("userId", "==", user.uid)); // 사용자 ID로 거래 데이터 조회
-        const querySnapshot = await getDocs(q);
-        
-        let totalCo2 = 0;
-        querySnapshot.forEach((doc) => {
-          totalCo2 += doc.data().CO2_reduction || 0;  // 각 거래의 CO2 절감량 합산
-        });
-        setCo2Reduction(totalCo2);  // 총 CO2 절감량 업데이트
+      },
+      (error) => {
+        console.error("사용자 데이터 구독 중 오류:", error);
+        Alert.alert("오류", "사용자 데이터를 가져오는 중 문제가 발생했습니다.");
       }
+    );
+
+    // 컴포넌트가 언마운트될 때 구독 해제
+    return () => {
+      unsubscribeUser();
     };
-
-    fetchUserData();
   }, [auth, db]);
-
-  const handleRating = (value) => {
-    setRating(value); 
-  };
 
   const handleInquiry = () => {
     Alert.alert(
@@ -76,8 +72,6 @@ const IfmScreen = ({ navigation }) => {
   };
 
   const handleDeleteAccount = () => {
-    let password = ""; // 비밀번호를 저장할 변수
-  
     Alert.prompt(
       "탈퇴하기",
       "비밀번호를 입력하세요.",
@@ -88,28 +82,63 @@ const IfmScreen = ({ navigation }) => {
         },
         {
           text: "확인",
-          onPress: (input) => {
-            password = input; // 입력된 비밀번호를 저장
-            if (password === "") {
+          onPress: async (password) => {
+            if (!password) {
               Alert.alert("오류", "비밀번호를 입력해주세요.");
               return;
             }
-            console.log("계정 탈퇴 완료. 입력된 비밀번호:", password);
-            navigation.navigate("LoginScreen");
+
+            const user = auth.currentUser;
+
+            if (!user) {
+              Alert.alert("오류", "로그인된 사용자가 없습니다.");
+              return;
+            }
+
+            if (!user.email) {
+              Alert.alert("오류", "사용자 이메일 정보를 가져올 수 없습니다.");
+              return;
+            }
+
+            // 비밀번호 재인증
+            const credential = EmailAuthProvider.credential(user.email, password);
+
+            try {
+              await reauthenticateWithCredential(user, credential);
+              console.log("재인증 성공");
+
+              // Firestore 사용자 데이터 삭제
+              const userDocRef = doc(db, "users", user.uid);
+              await deleteDoc(userDocRef);
+              console.log("Firestore 사용자 데이터 삭제 성공");
+
+              // Firebase Auth 사용자 삭제
+              await deleteUser(user);
+              console.log("Firebase Auth 사용자 삭제 성공");
+
+              Alert.alert("탈퇴 완료", "계정이 성공적으로 삭제되었습니다.");
+            } catch (error) {
+              console.error("계정 삭제 중 오류:", error);
+              if (error.code === "auth/wrong-password") {
+                Alert.alert("오류", "비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+              } else if (error.code === "auth/invalid-credential") {
+                Alert.alert("오류", "유효하지 않은 자격 증명입니다. 다시 로그인 후 시도해주세요.");
+              } else {
+                Alert.alert("오류", "계정 삭제 중 문제가 발생했습니다.");
+              }
+            }
           },
         },
       ],
       "secure-text" // 비밀번호 입력을 위한 secure 텍스트
     );
   };
-  
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.navigateContainer}
-          >
+          <TouchableOpacity style={styles.navigateContainer}>
             <NavigateBefore onPress={() => navigation.goBack()} />
           </TouchableOpacity>
           <Text style={styles.headerText}>내 정보</Text>
@@ -118,7 +147,7 @@ const IfmScreen = ({ navigation }) => {
         <View style={styles.profileCard}>
           <Image source={require("../../../../start-expo/assets/avatar.png")} style={styles.profileImage} />
           <Text style={styles.profileText}>
-            <Text style={styles.highlightText}>{nickname || "동길님"}</Text>
+            <Text style={styles.highlightText}>{nickname || "사용자"}</Text>
             <Text>의 나눔으로{"\n"} {co2Reduction.toFixed(2)}g의 CO</Text>
             <Text style={styles.smallText}>2</Text>
             <Text> 배출을 절감했습니다.</Text>
@@ -126,29 +155,22 @@ const IfmScreen = ({ navigation }) => {
           <View style={styles.ratingContainer}>
             <View style={styles.stars}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <TouchableOpacity key={value} onPress={() => handleRating(value)}>
-                  <MaterialIcons
-                    name={value <= rating ? "star" : "star-border"}
-                    size={30}
-                    color="#FFD700"
-                  />
-                </TouchableOpacity>
+                <MaterialIcons
+                  key={value}
+                  name={value <= rating ? "star" : "star-border"}
+                  size={30}
+                  color="#FFD700"
+                />
               ))}
             </View>
           </View>
         </View>
 
         <View style={styles.options}>
-          <TouchableOpacity 
-            style={styles.optionItem} 
-            onPress={() => navigation.navigate("SignUpmodify")}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate("SignUpmodify")}>
             <Text style={styles.optionText}>· 계정 / 정보 수정하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.optionItem} 
-            onPress={() => navigation.navigate("Locationmodify")}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate("Locationmodify")}>
             <Text style={styles.optionText}>· 동네 변경하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.optionItem} onPress={handleInquiry}>

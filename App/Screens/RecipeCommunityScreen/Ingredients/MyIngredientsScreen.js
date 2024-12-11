@@ -13,7 +13,18 @@ import * as ImagePicker from "expo-image-picker";
 import styles from "./MyIngredientsScreen.style";
 import NavigateBefore from "../../../components/NavigateBefore";
 import { uploadImageToCloudinary } from "../../../services/cloudinaryService";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth"; // Firebase 인증 추가
 import { app2 } from "../../../../firebase";
 import { useNavigation } from "@react-navigation/native";
@@ -87,6 +98,7 @@ const MyIngredientsScreen = () => {
   /**
    * 🔥 이미지 업로드 및 URL Firestore 저장
    */
+  
   const handleCameraPress = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -94,26 +106,34 @@ const MyIngredientsScreen = () => {
         alert("사진 라이브러리 접근 권한이 필요합니다.");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.7,
       });
-
+  
       if (!result.canceled) {
         // 클라우드에 이미지 업로드 (예: Cloudinary)
         const uploadedUrl = await uploadImageToCloudinary(result.assets[0].uri);
-
+  
         // Firestore에 URL 저장 + 사용자 닉네임 추가
         const docRef = await addDoc(collection(myDb, "냉장고"), {
           url: uploadedUrl,
           nickname: nickname, // 사용자 닉네임 추가
         });
-
+  
+        // 상세정보 서브 컬렉션 생성 및 데이터 저장
+        const detailsRef = collection(myDb, `냉장고/${docRef.id}/상세정보`);
+        await addDoc(detailsRef, {
+          categories: [],
+          expirationDate: null,
+          description: null,
+        });
+  
         // 로컬 상태 업데이트
         const newImage = { id: docRef.id, url: uploadedUrl, nickname: nickname };
         setImageUrls((prev) => [newImage, ...prev]); // 최신순으로 추가
-
+  
         // 성공 메시지와 MyFoodWrite 화면 이동
         Alert.alert("업로드 성공", "이미지가 성공적으로 추가되었습니다!", [
           {
@@ -129,6 +149,7 @@ const MyIngredientsScreen = () => {
       Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
     }
   };
+  
 
   /**
    * 🔥 이미지 삭제

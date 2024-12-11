@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, SafeAreaView, Alert, ActionSheetIOS } from "react-native";
+import { FlatList, SafeAreaView } from "react-native";
 import CmPost from "../Community/CmPost"; // CmPost 컴포넌트
 import { styles } from "../../../styles/RecipeCommunity/CmPostList.style";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { app2 } from "../../../../firebase"; // Firebase 초기화
 
 const CmPostList = ({ navigation }) => {
-  const [posts, setPosts] = useState([]);
-  const db = getFirestore(app2);
+  const [posts, setPosts] = useState([]); // 게시물 상태
+  const db = getFirestore(app2); // Firestore 인스턴스
 
-  // Firestore에서 게시물 가져오기
+  // Firestore에서 게시물 가져오기 (createdAt 기준 내림차순 정렬)
   const fetchPosts = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "community"));
+      const q = query(collection(db, "community"), orderBy("createdAt", "desc")); // 내림차순 정렬
+      const querySnapshot = await getDocs(q);
       const fetchedPosts = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         const createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
@@ -30,7 +31,7 @@ const CmPostList = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(); // 컴포넌트가 마운트될 때 게시물 가져오기
   }, []);
 
   // 시간 차이를 계산하는 함수
@@ -49,56 +50,13 @@ const CmPostList = ({ navigation }) => {
     }
   };
 
-  // 게시물 삭제 함수
-  const deletePost = async (postId) => {
-    try {
-      await deleteDoc(doc(db, "community", postId));
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-      Alert.alert("삭제 완료", "게시물이 성공적으로 삭제되었습니다.");
-    } catch (error) {
-      console.error("게시물 삭제 실패:", error.message);
-      Alert.alert("오류", "게시물 삭제에 실패했습니다.");
-    }
-  };
-
-  // 옵션 버튼 핸들러
-  const handleOptionsPress = (post) => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["게시글 수정", "삭제", "닫기"],
-        destructiveButtonIndex: 1, // "삭제"를 빨간색으로 표시
-        cancelButtonIndex: 2, // "닫기" 버튼의 인덱스
-      },
-      (buttonIndex) => {
-        if (buttonIndex === 0) {
-          navigation.navigate("ModifyCmPost", { post }); // 게시물 수정 화면으로 이동
-        } else if (buttonIndex === 1) {
-          Alert.alert(
-            "게시물 삭제",
-            "정말로 삭제하시겠습니까?",
-            [
-              { text: "취소", style: "cancel" },
-              {
-                text: "삭제",
-                onPress: () => deletePost(post.id),
-              },
-            ],
-            { cancelable: true }
-          );
-        }
-      }
-    );
-  };
-
   // 게시물 렌더링
   const renderItem = ({ item }) => (
     <CmPost
       {...item}
       onPress={() => navigation.navigate('CmPostChat', { post: item })} // post 객체 전달
-      onOptionsPress={() => handleOptionsPress(item)}
     />
   );
-  
 
   return (
     <SafeAreaView style={styles.safeArea}>

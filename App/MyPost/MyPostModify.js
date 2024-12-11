@@ -18,9 +18,11 @@ import NavigateBefore from "../components/NavigateBefore";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 const MyPostModify = ({ navigation, route }) => {
   const { docId, postData } = route.params || {};
+  const [nickname, setNickname] = useState("동길님"); // 초기값을 "동길님"으로 설정
   const [images, setImages] = useState(postData?.images || Array(5).fill(null));
   const [selectedCategories, setSelectedCategories] = useState(postData?.categories || []);
   const [year, setYear] = useState(postData?.expirationDate?.split("-")[0] || "");
@@ -32,12 +34,32 @@ const MyPostModify = ({ navigation, route }) => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const db = getFirestore();
   const storage = getStorage();
+  const auth = getAuth();
 
   useEffect(() => {
     if (!docId || !postData) {
       Alert.alert("오류", "게시물 ID가 유효하지 않거나 데이터가 없습니다.");
       navigation.goBack();
     }
+
+    const fetchNickname = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.error("사용자가 인증되지 않았습니다.");
+          return;
+        }
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setNickname(userDoc.data().nickname || "사용자");
+        }
+      } catch (error) {
+        console.error("닉네임 가져오기 오류:", error);
+      }
+    };
+
+    fetchNickname();
 
     const showSubscription = Keyboard.addListener("keyboardDidShow", () =>
       setKeyboardVisible(true)
@@ -163,7 +185,7 @@ const MyPostModify = ({ navigation, route }) => {
               style={styles.authorImage}
             />
             <View style={styles.authorTextContainer}>
-              <Text style={styles.authorName}>동길님</Text>
+              <Text style={styles.authorName}>{nickname}</Text>
               <Text style={styles.authorDescription}>
                 등록할 식자재를 선택해주세요
               </Text>

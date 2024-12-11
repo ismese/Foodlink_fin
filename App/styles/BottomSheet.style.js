@@ -1,0 +1,96 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  postContainer: {
+    width: "100%",
+    backgroundColor: "white",
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomColor: "#EAEAEA",
+  },
+  imageContainer: {
+    width: 127, 
+    height: 109, 
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#D9D9D9",
+    overflow: "hidden",
+  },
+  imagePlaceholder: {
+    flex: 1,
+    borderRadius: 5,
+    backgroundColor: "#D9D9D9",
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    marginLeft: 10,
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  title: {
+    color: "#521212",
+    fontSize: 13, 
+    fontWeight: "bold",
+    lineHeight: 18,
+  },
+  infoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 8,
+  },
+  infoText: {
+    color: "#8C8C8C",
+    fontSize: 11, 
+    fontWeight: "400",
+    lineHeight: 16,
+  },
+  infoSeparator: {
+    color: "#8C8C8C",
+    fontSize: 11,
+    fontWeight: "400",
+    lineHeight: 16,
+  },
+  price: {
+    color: "#2D754E",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  actionText: {
+    color: "#8C8C8C",
+    fontSize: 12,
+    fontWeight: "400",
+    lineHeight: 16,
+  },
+});
