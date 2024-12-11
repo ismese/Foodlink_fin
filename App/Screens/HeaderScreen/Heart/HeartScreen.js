@@ -9,7 +9,6 @@ import {
   Image,
   Alert,
 } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import { PostContext } from "../../../PostContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import {
@@ -18,6 +17,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import NavigateBefore from "../../../components/NavigateBefore";
+
 
 const HeartScreen = ({ navigation }) => {
   const { favorites, removeFavorite } = useContext(PostContext);
@@ -98,14 +99,15 @@ const HeartScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-    {/* 고정된 헤더 영역 */}
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#333" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>나의 찜</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.headercontainer}>
+        {/* 헤더 */}
+        <View style={styles.header1}>
+          <NavigateBefore onPress={() => navigation.goBack()} />
+          <Text style={styles.headertitle}>내 찜</Text>
+          <View style={styles.emptySpace} />
+        </View>
+      </View>
 
     {/* 스크롤 가능한 게시물 목록 영역 */}
     <View style={styles.content}>
@@ -184,9 +186,34 @@ const Post = ({ item, onPress, onRemove, userLocation, calculateDistance }) => {
 
 
 const styles = StyleSheet.create({
+
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
+  },
+  headercontainer: {
+    flex: 0,
+    backgroundColor: "#FFFFFF",
+  },
+  
+  header1: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headertitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2E2F33",
+  },
+  emptySpace: {
+    width: 24,
   },
   // 📌 상단 고정된 헤더 스타일
   header: {

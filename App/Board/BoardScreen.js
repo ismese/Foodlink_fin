@@ -11,18 +11,26 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./BoardScreen.style";
 import { PostContext } from "../PostContext";
-import firebase from "firebase/compat/app"; // firebase/compat 가져오기
-import "firebase/compat/firestore"; // Firestore 사용
+import {
+  getFirestore,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { useRoute } from "@react-navigation/native";
 
 const BoardScreen = ({ navigation }) => {
-  const { addFavorite } = useContext(PostContext);
+  const { addFavorite, favorites } = useContext(PostContext);
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
-  const [userLocation, setUserLocation] = useState(null);
-  const route = useRoute(); // 네비게이션 route
-  const db = firebase.firestore(); // Firestore 초기화
-  const auth = firebase.auth();
+  const [userLocation, setUserLocation] = useState(null); // 사용자 위치 상태 추가
+  const route = useRoute(); // route 정보 가져오기
+  const db = getFirestore();
+  const auth = getAuth();
 
   // Firestore에서 사용자 위치 가져오기
   useEffect(() => {
@@ -33,10 +41,9 @@ const BoardScreen = ({ navigation }) => {
           console.error("로그인된 사용자가 없습니다.");
           return;
         }
-
-        const userDocRef = db.collection("users").doc(userUID);
-        const userDoc = await userDocRef.get();
-        if (userDoc.exists) {
+        const userDocRef = doc(db, "users", userUID);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
           const userData = userDoc.data();
           setUserLocation({
             latitude: userData.latitude,
@@ -56,9 +63,10 @@ const BoardScreen = ({ navigation }) => {
   // Firestore에서 실시간 게시글 가져오기
   useEffect(() => {
     const fetchPosts = () => {
-      const postsRef = db.collection("posts").orderBy("createdAt", "desc");
+      const postsRef = collection(db, "posts");
+      const postsQuery = query(postsRef, orderBy("createdAt", "desc"));
 
-      const unsubscribe = postsRef.onSnapshot((snapshot) => {
+      const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const fetchedPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -109,44 +117,12 @@ const BoardScreen = ({ navigation }) => {
     navigation.navigate("FeedScreen", { post });
   };
 
-  const handleFavorite = async (post) => {
-    try {
-      const userUID = auth.currentUser?.uid;
-      if (!userUID) {
-        Alert.alert("오류", "로그인된 사용자가 없습니다.");
-        return;
-      }
-
-      const userDocRef = db.collection("users").doc(userUID);
-      const userDoc = await userDocRef.get();
-
-      let favorites = [];
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        favorites = userData.favorites || [];
-      }
-
-      // 중복 확인
-      if (!favorites.some((fav) => fav.id === post.id)) {
-        favorites.push({
-          id: post.id,
-          title: post.title,
-          priceOrExchange: post.priceOrExchange,
-          createdAt: post.createdAt.toDate(),
-          location: post.location,
-          images: post.images,
-        });
-
-        // Firestore 업데이트
-        await userDocRef.update({ favorites });
-
-        Alert.alert("찜 성공", "게시물이 찜 목록에 추가되었습니다.");
-      } else {
-        Alert.alert("중복", "이미 찜한 게시물입니다.");
-      }
-    } catch (error) {
-      console.error("찜한 게시물 저장 중 오류 발생:", error);
-      Alert.alert("오류", "찜한 게시물을 저장하는 중 문제가 발생했습니다.");
+  const handleFavorite = (post) => {
+    if (!favorites.some((fav) => fav.id === post.id)) {
+      addFavorite(post);
+      Alert.alert("찜하기 성공", "찜한 게시물에 추가되었습니다.");
+    } else {
+      Alert.alert("중복!", "이미 찜한 게시물입니다.");
     }
   };
 
@@ -227,7 +203,7 @@ const Post = ({ item, userLocation, calculateDistance, onFavorite }) => {
               style={styles.actionButton}
               onPress={onFavorite}
             >
-              <MaterialIcons name="favorite" size={16} color="#F44336" />
+              <MaterialIcons name="favorite" size={17} color="#F28B82" paddingLeft = "86%" />
               <Text style={styles.actionText}>찜</Text>
             </TouchableOpacity>
           )}

@@ -85,45 +85,6 @@ const MyPage = () => {
     }, [nickname])
   );
 
-  // 이미지 추가 핸들러
-  const handleAddImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("권한 필요", "사진 라이브러리 접근 권한이 필요합니다.");
-      return;
-    }
-
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.5,
-    });
-
-    if (!pickerResult.canceled) {
-      try {
-        // Cloudinary에 이미지 업로드
-        const uploadedUrl = await uploadImageToCloudinary(pickerResult.assets[0].uri);
-
-        // Firestore에 URL 저장 + 업로드 시간 추가
-        const docRef = await addDoc(collection(db, "냉장고"), {
-          url: uploadedUrl,
-          createdAt: new Date(), // 업로드 시간 추가
-          nickname: nickname, // 사용자 닉네임 추가
-        });
-
-        // 상태 업데이트
-        setIngredients((prev) => [
-          ...prev,
-          { id: docRef.id, url: uploadedUrl, createdAt: new Date(), nickname: nickname },
-        ]);
-
-        Alert.alert("이미지 추가", "이미지가 성공적으로 추가되었습니다!");
-      } catch (error) {
-        console.error("이미지 업로드 및 저장 실패:", error);
-        Alert.alert("오류", "이미지 업로드 중 문제가 발생했습니다.");
-      }
-    }
-  };
-
   // + 버튼 클릭 핸들러
   const handleAddPost = () => {
     if (selectedTab === "레시피") {
@@ -152,7 +113,10 @@ const MyPage = () => {
           style={styles.ingredientsListContainer}
         >
           {/* 사진 추가 버튼 */}
-          <TouchableOpacity style={styles.addImageButton} onPress={handleAddImage}>
+          <TouchableOpacity
+            style={styles.addImageButton}
+            onPress={() => navigation.navigate("MyIngredientsScreen")}
+          >
             <Text style={styles.addImageText}>+</Text>
           </TouchableOpacity>
 
