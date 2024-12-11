@@ -32,13 +32,13 @@ export const styles = StyleSheet.create({
     },
     highlightText: {
       color: "#2D754E",
-      fontSize: 16,
+      fontSize: 18,
       fontFamily: "Inter-Bold",
       fontWeight: "600",
       lineHeight: 20,
     },
     smallText: {
-      fontSize: 8,
+      fontSize: 10,
       color: "rgba(0, 0, 0, 0.8)",
     },
     ratingContainer: {
@@ -63,13 +63,13 @@ export const styles = StyleSheet.create({
       marginHorizontal: 0,
       flexDirection: "row",
       flexWrap: "wrap",
-      paddingHorizontal: 1,       //내 핸드폰 기준 1, 진영4
+      paddingHorizontal: 8,       //내 핸드폰 기준 1, 진영 8
       justifyContent: "flex-start",
     },
     gridItem: {
       width: 115,
       height: 115,
-      backgroundColor: "#F5F5F5",
+      backgroundColor: "#FFFFFF",
       borderRadius: 5,
       margin: 2,
       justifyContent: "center",

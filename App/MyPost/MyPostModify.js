@@ -276,7 +276,7 @@ const MyPostModify = ({ navigation, route }) => {
                   })
                 }
               >
-                <Ionicons name="grid-outline" size={24} color="green" />
+                <Ionicons name="grid-outline" size={24} color="#2D754E" />
               </TouchableOpacity>
               <ScrollView
                 horizontal

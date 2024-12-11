@@ -111,7 +111,7 @@ const CmPostDetail = ({ post }) => {
           onPress={handleLike}
         >
           <MaterialIcons
-            name={isLiked ? "thumb-up" : "thumb-up-off-alt"}
+            name={isLiked ? "favorite" : "favorite-border"}
             size={16}
             color={isLiked ? "#2D754E" : "#8C8C8C"}
           />

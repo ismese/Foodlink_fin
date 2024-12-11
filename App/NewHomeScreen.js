@@ -42,7 +42,7 @@ const TabNavigator = () => {
           const iconName = focused ? ICONS[route.name].focused : ICONS[route.name].unfocused;
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: 'green',
+        tabBarActiveTintColor: '#2D754E',
         tabBarInactiveTintColor: 'gray',
       })}
     >

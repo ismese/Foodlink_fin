@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/BottomSheet.style"; // 하단 시트 스타일 파일
 import * as Location from "expo-location"; // 위치 정보를 가져오기 위해 expo-location 사용
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore"; // Firestore 사용
 
 const BottomSheet = ({ post, navigation }) => {
   const [distance, setDistance] = useState(null); // 거리 상태 관리
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
   useEffect(() => {
     if (!post) return; // post가 없으면 거리 계산 수행하지 않음
@@ -41,6 +45,47 @@ const BottomSheet = ({ post, navigation }) => {
   const handlePostClick = () => {
     if (post) {
       navigation.navigate("FeedScreen", { post }); // FeedScreen으로 이동
+    }
+  };
+
+  const handleFavorite = async () => {
+    try {
+      const userUID = auth.currentUser?.uid;
+      if (!userUID) {
+        Alert.alert("오류", "로그인된 사용자가 없습니다.");
+        return;
+      }
+
+      const userDocRef = db.collection("users").doc(userUID); // Firestore 사용자 문서 참조
+      const userDoc = await userDocRef.get(); // 사용자 데이터 가져오기
+
+      let favorites = [];
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        favorites = userData.favorites || [];
+      }
+
+      // 중복 확인
+      if (!favorites.some((fav) => fav.id === post.id)) {
+        favorites.push({
+          id: post.id,
+          title: post.title,
+          priceOrExchange: post.priceOrExchange,
+          createdAt: post.createdAt.toDate(), // Firestore 타임스탬프를 JS Date로 변환
+          location: post.location,
+          images: post.images,
+        });
+
+        // Firestore 업데이트
+        await userDocRef.update({ favorites });
+
+        Alert.alert("찜 성공", "게시물이 찜 목록에 추가되었습니다.");
+      } else {
+        Alert.alert("중복", "이미 찜한 게시물입니다.");
+      }
+    } catch (error) {
+      console.error("찜한 게시물 저장 중 오류 발생:", error);
+      Alert.alert("오류", "찜한 게시물을 저장하는 중 문제가 발생했습니다.");
     }
   };
 
@@ -104,7 +149,7 @@ const BottomSheet = ({ post, navigation }) => {
           </Text>
 
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleFavorite}>
               <MaterialIcons name="favorite" size={20} color="#F44336" />
               <Text style={styles.actionText}>찜</Text>
             </TouchableOpacity>

@@ -226,10 +226,13 @@ const MyPostWrite = ({ navigation }) => {
         enabled={isKeyboardVisible}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+            
           {/* Header */}
           <View style={styles.header}>
             <NavigateBefore onPress={() => navigation.goBack()} />
-            <Text style={styles.title}>게시물 추가하기</Text>
+            <Text style={styles.title}>커뮤니티</Text>
+            <View style={styles.emptySpace} />
           </View>
 
           {/* Author Section */}
@@ -330,7 +333,7 @@ const MyPostWrite = ({ navigation }) => {
                   })
                 }
               >
-                <Ionicons name="grid-outline" size={24} color="green" />
+                <Ionicons name="grid-outline" size={24} color="#2D754E" />
               </TouchableOpacity>
               <ScrollView
                 horizontal

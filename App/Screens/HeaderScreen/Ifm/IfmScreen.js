@@ -148,7 +148,7 @@ const IfmScreen = ({ navigation }) => {
           <Image source={require("../../../../start-expo/assets/avatar.png")} style={styles.profileImage} />
           <Text style={styles.profileText}>
             <Text style={styles.highlightText}>{nickname || "사용자"}</Text>
-            <Text>의 나눔으로{"\n"} {co2Reduction.toFixed(2)}g의 CO</Text>
+            <Text>의 나눔으로{"\n"} {co2Reduction.toFixed(0)}g의 CO</Text>
             <Text style={styles.smallText}>2</Text>
             <Text> 배출을 절감했습니다.</Text>
           </Text>

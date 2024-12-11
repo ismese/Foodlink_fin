@@ -83,7 +83,6 @@ const headerStyles = {
     fontFamily: "Inter-bold",
     color: '#2D754E',
     backgroundColor: '#F5F5F5',
-    color: 'green',
     padding:10,
     paddingVertical:6,
     borderRadius:10,

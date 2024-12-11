@@ -15,6 +15,7 @@ const chatRoomStyles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   chatTitle: {
+    left: '26.5%', // 수평 중앙
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
@@ -35,18 +36,19 @@ const chatRoomStyles = StyleSheet.create({
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: 'white',
-    borderColor: '#2D754E',
+    backgroundColor: '#F2F3F7',
+    borderColor: '#F2F3F7',
     borderWidth: 1,
   },
   messageText: {
     fontSize: 14,
     color: 'white',
+    fontFamily: "Inter-medium",
   },
   otherMessageText: {
     fontSize: 14,
-    color: 'black',
-    fontWeight: 'bold',
+    fontFamily: "Inter-medium",
+    color: '#black',
   },
   // 입력창
   inputWrapper: {
@@ -84,17 +86,15 @@ const chatRoomStyles = StyleSheet.create({
     padding: 5,
   },
   dateDisplay: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FFFFFF',
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   dateText: {
     fontSize: 14,
-    color: '#2D754E',
-    fontWeight: 'bold',
+    color: '#8C8C8C',
+    fontFamily: "Inter-medium",
   },
   stars: {
     flexDirection: 'row',

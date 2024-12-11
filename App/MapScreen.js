@@ -134,8 +134,8 @@ const MapScreen = ({ navigation }) => {
             }}
             title="현재 위치"
             description="이곳이 나의 현재 위치입니다."
-            pinColor="bluez                                                                                                                                                                            " // 사용자 현재 위치는 파란색 핀으로 표시
-          />
+            pinColor="blue"
+            />
         )}
 
         {posts.map((post) => (

@@ -15,7 +15,7 @@ const Locationmodify = ({ navigation }) => {
       <View style={styles.header}>
       <TouchableOpacity 
         style={styles.navigateContainer}
-        onPress={() => navigation.navigate("IfmScreen")} 
+        onPress={() => navigation.navigate("NewHomeScreen")} 
       >
         <NavigateBefore />
       </TouchableOpacity>

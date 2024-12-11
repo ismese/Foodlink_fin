@@ -50,7 +50,7 @@ const TabNavigator = () => {
             : ICONS[route.name]?.unfocused || "help-circle-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "green",
+        tabBarActiveTintColor: "#2D754E",
         tabBarInactiveTintColor: "gray",
       })}
     >

@@ -8,14 +8,12 @@ export const styles = StyleSheet.create({
   commentContainer: {
     flexDirection: "row", // 가로 정렬
     alignItems: "flex-start", // 텍스트가 프로필 이미지와 정렬
-    marginBottom: 30,
-    backgroundColor: "#F9FAFB", // 댓글 배경색 추가
-    padding: 10, // 댓글 컨테이너 여백
+    marginBottom: 10,
+    backgroundColor: "#FFFFFF", // 댓글 배경색 추가
+    paddingVertical: 10, // 댓글 컨테이너 여백
     borderRadius: 10, // 댓글 컨테이너 모서리 둥글게
-    shadowColor: "#000", // 그림자 효과
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F9FAFB", // 그림자 효과
   },
   commentAvatar: {
     width: 40,

@@ -18,11 +18,15 @@ const CustomHeader = ({ title }) => {
   const [selectedItems, setSelectedItems] = useState([]); // 선택된 항목 상태
 
   const getTitleStyle = () => {
-    return title.length >= 3
-      ? [headerStyles.headerTitle, { left: '45%' }]
-      : [headerStyles.headerTitle, { left: '50%' }];
+    if (title.length >= 3) {
+      return [headerStyles.headerTitle, { left: '46%' }];
+    } else if (title.length < 2) {
+      return [headerStyles.headerTitle, { left: '52%' }];
+    } else {
+      return [headerStyles.headerTitle, { left: '50%' }];
+    }
   };
-
+  
   // 항목 제거
   const removeItem = (item) => {
     Alert.alert(
@@ -55,12 +59,12 @@ const CustomHeader = ({ title }) => {
       {/* 상단 헤더 */}
       <View style={headerStyles.headerTop}>
         <TouchableOpacity onPress={() => navigation.navigate('HeartScreen')}>
-          <Ionicons name="heart-outline" size={22} color="green" />
+          <Ionicons name="heart-outline" size={22} color="#2D754E" />
         </TouchableOpacity>
         <Text style={getTitleStyle()}>{title}</Text>
         <View style={headerStyles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('IfmScreen')}>
-            <Ionicons name="person-outline" size={22} color="green" />
+            <Ionicons name="person-outline" size={22} color="#2D754E" />
           </TouchableOpacity>
         </View>
       </View>
@@ -72,7 +76,7 @@ const CustomHeader = ({ title }) => {
           <View style={headerStyles.headerBottom}>
             <TouchableOpacity style={headerStyles.locationDropdown}>
               <Text style={headerStyles.locationText}>거주지</Text>
-              <Ionicons name="chevron-down-outline" size={16} color="green" />
+              <Ionicons name="chevron-down-outline" size={16} color="#2D754E" />
             </TouchableOpacity>
 
             <View style={headerStyles.searchBar}>
@@ -104,7 +108,7 @@ const CustomHeader = ({ title }) => {
                 navigation.navigate('CategoryScreen', { setSelectedItems })
               }
             >
-              <Ionicons name="grid-outline" size={24} color="green" />
+              <Ionicons name="grid-outline" size={24} color="#2D754E" />
             </TouchableOpacity>
 
             <ScrollView

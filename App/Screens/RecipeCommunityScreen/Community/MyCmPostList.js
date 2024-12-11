@@ -1,34 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { FlatList, SafeAreaView, Alert, ActionSheetIOS } from "react-native";
-import CmPost from "../Community/CmPost"; // CmPost 컴포넌트
+import CmPost from "../Community/CmPost"; 
 import { styles } from "../../../styles/RecipeCommunity/CmPostList.style";
 import { getFirestore, collection, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { app2 } from "../../../../firebase"; // 본인 Firebase Firestore 초기화
+import { app2 } from "../../../../firebase"; 
 
 const MyCmPostList = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [userNickname, setUserNickname] = useState(""); // 현재 사용자 닉네임
-  const db = getFirestore(app2); // 본인 Firestore
-  const usersDb = getFirestore(); // 형 Firestore
+  const db = getFirestore(app2); 
+  const usersDb = getFirestore(); 
   const auth = getAuth();
 
-  // 현재 로그인된 사용자 닉네임 가져오기
+  // 🔥 현재 로그인된 사용자 닉네임 가져오기
   const fetchUserNickname = async () => {
     const user = auth.currentUser;
 
     if (user) {
       try {
-        console.log("사용자 UID:", user.uid); // UID 확인 로그
-        const userDocRef = doc(usersDb, "users", user.uid); // 형 Firestore에서 사용자 문서 참조
+        const userDocRef = doc(usersDb, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
           const fetchedNickname = userDoc.data().nickname || "익명";
-          console.log("로그인한 사용자 닉네임:", fetchedNickname);
-          setUserNickname(fetchedNickname); // 닉네임 상태 업데이트
-        } else {
-          console.log("형 Firestore에서 사용자 문서를 찾을 수 없습니다.");
+          setUserNickname(fetchedNickname); 
         }
       } catch (error) {
         console.error("닉네임 가져오기 실패:", error.message);
@@ -38,36 +34,55 @@ const MyCmPostList = ({ navigation }) => {
     }
   };
 
-  // Firestore에서 게시물 가져오기
+  // 🔥 Firestore에서 게시물 가져오기
   const fetchPosts = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "community"));
       const fetchedPosts = querySnapshot.docs
         .map((doc) => {
           const data = doc.data();
+          const createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
+          const timeDifference = getTimeDifference(createdAt); // 🔥 시간 차이 계산
           return {
             id: doc.id,
             ...data,
+            timeDifference, // 🔥 몇일 전, 몇시간 전 필드 추가
           };
         })
-        .filter((post) => post.nickname === userNickname); // 닉네임 필터링
+        .filter((post) => post.nickname === userNickname); 
       setPosts(fetchedPosts);
     } catch (error) {
       console.error("게시물 가져오기 실패:", error.message);
     }
   };
 
+  // 🔥 시간 차이를 계산하는 함수
+  const getTimeDifference = (createdAt) => {
+    const now = new Date();
+    const diff = Math.floor((now - createdAt) / 1000); // 초 단위로 계산
+
+    if (diff < 60) {
+      return `${diff}초 전`;
+    } else if (diff < 3600) {
+      return `${Math.floor(diff / 60)}분 전`;
+    } else if (diff < 86400) {
+      return `${Math.floor(diff / 3600)}시간 전`;
+    } else {
+      return `${Math.floor(diff / 86400)}일 전`;
+    }
+  };
+
   useEffect(() => {
-    fetchUserNickname(); // 닉네임 가져오기
+    fetchUserNickname(); 
   }, []);
 
   useEffect(() => {
     if (userNickname) {
-      fetchPosts(); // 닉네임을 가져온 후 게시물 필터링
+      fetchPosts(); 
     }
   }, [userNickname]);
 
-  // 게시물 삭제 함수
+  // 🔥 게시물 삭제 함수
   const deletePost = async (postId) => {
     try {
       await deleteDoc(doc(db, "community", postId));
@@ -79,7 +94,7 @@ const MyCmPostList = ({ navigation }) => {
     }
   };
 
-  // 옵션 버튼 핸들러
+  // 🔥 옵션 버튼 핸들러
   const handleOptionsPress = (post) => {
     ActionSheetIOS.showActionSheetWithOptions(
       {
@@ -89,7 +104,7 @@ const MyCmPostList = ({ navigation }) => {
       },
       (buttonIndex) => {
         if (buttonIndex === 0) {
-          navigation.navigate("ModifyCmPost", { post }); // 게시물 수정 화면으로 이동
+          navigation.navigate("ModifyCmPost", { post }); 
         } else if (buttonIndex === 1) {
           Alert.alert(
             "게시물 삭제",
@@ -108,10 +123,11 @@ const MyCmPostList = ({ navigation }) => {
     );
   };
 
-  // 게시물 렌더링
+  // 🔥 게시물 렌더링
   const renderItem = ({ item }) => (
     <CmPost
       {...item}
+      time={item.timeDifference} // 🔥 시간 표시를 위한 필드 추가
       onPress={() => navigation.navigate("CmPostChat", { post: item })}
       onOptionsPress={() => handleOptionsPress(item)}
     />

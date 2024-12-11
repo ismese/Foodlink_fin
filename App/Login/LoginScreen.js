@@ -73,7 +73,7 @@ const LoginScreen = ({ navigation }) => {
           style={styles.signUpButton}
           onPress={() => navigation.navigate("SignUp")}
         >
-          <Text style={styles.signUpButtonText}>Sign up</Text>
+          <Text style={styles.signupButtonText}>Sign up</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

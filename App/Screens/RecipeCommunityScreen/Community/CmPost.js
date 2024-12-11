@@ -56,11 +56,10 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
 
       {/* 게시물 정보 */}
       <View style={styles.infoContainer}>
-        
         <Text style={styles.infoText}>{time}</Text>
       </View>
 
-      {/* 좋아요 및 댓글 */}
+      {/* 좋아요, 댓글, 찜 버튼 */}
       <View style={styles.actionsContainer}>
         <View style={styles.action}>
           <MaterialIcons name="favorite-border" size={16} color="#8C8C8C" />
@@ -70,6 +69,9 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
           <MaterialIcons name="chat-bubble-outline" size={16} color="#8C8C8C" />
           <Text style={styles.actionText}>{comments}</Text>
         </View>
+        <TouchableOpacity style={styles.favoriteButton} onPress={onOptionsPress}>
+          <MaterialIcons name="bookmark-border" size={16} color="#8C8C8C" />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

@@ -210,7 +210,7 @@ const MyFoodWrite = ({ navigation, route }) => {
                     })
                   }
                 >
-                  <Ionicons name="grid-outline" size={22} color="green" />
+                  <Ionicons name="grid-outline" size={22} color="#2D754E" />
                 </TouchableOpacity>
                 <ScrollView
                   horizontal
