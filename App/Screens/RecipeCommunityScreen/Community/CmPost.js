@@ -46,10 +46,13 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      {/* 게시물 제목과 옵션 버튼 */}
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-      </View>
+    {/* 게시물 제목과 옵션 버튼 */}
+    <View style={styles.header}>
+      <Text style={styles.title}>{title}</Text>
+      <TouchableOpacity onPress={onOptionsPress} style={styles.optionsButton}>
+        <MaterialIcons name="more-vert" size={15} color="#8C8C8C" />
+      </TouchableOpacity>
+    </View>
 
       {/* 게시물 내용 */}
       <Text style={styles.content}>{content}</Text>
@@ -68,10 +71,7 @@ const CmPost = ({ id, title, content, distance, time, onPress, onOptionsPress })
         <View style={styles.action}>
           <MaterialIcons name="chat-bubble-outline" size={16} color="#8C8C8C" />
           <Text style={styles.actionText}>{comments}</Text>
-        </View>
-        <TouchableOpacity style={styles.favoriteButton} onPress={onOptionsPress}>
-          <MaterialIcons name="bookmark-border" size={16} color="#8C8C8C" />
-        </TouchableOpacity>
+        </View>  
       </View>
     </TouchableOpacity>
   );

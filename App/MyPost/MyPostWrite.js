@@ -231,7 +231,7 @@ const MyPostWrite = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <NavigateBefore onPress={() => navigation.goBack()} />
-            <Text style={styles.title}>커뮤니티</Text>
+            <Text style={styles.title}>게시물 추가하기</Text>
             <View style={styles.emptySpace} />
           </View>
 
