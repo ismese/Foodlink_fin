@@ -34,7 +34,8 @@ const MyPostWrite = ({ navigation }) => {
   const [nickname, setNickname] = useState("닉네임 없음");
   const [location, setLocation] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false); // 중복 방지 플래그 추가
+  
   // 닉네임 가져오기 및 위치 권한 요청
   useEffect(() => {
     const fetchNickname = async () => {
