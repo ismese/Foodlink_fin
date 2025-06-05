@@ -1,12 +1,13 @@
-# TonePick - AI로 재현하는 나만의 오디오북
+### TonePick - AI로 재현하는 나만의 오디오북
 
 **TonePick**은 사용자의 목소리를 클로닝하여 PDF 문서를 개인 맞춤형 AI 음성으로 읽어주는 모바일 오디오북 애플리케이션입니다.  
-React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사용자 맞춤 TTS 경험을 제공합니다.
+React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사용자 맞춤 TTS 경험을 제공합니다.  
 
 
+<br>
 
 
-## 주요 기능
+#### 1️⃣ 주요 기능
 
 - **Voice Cloning**: 7개의 짧은 음성을 녹음하면 ElevenLabs API로 개인화된 AI Voice ID 생성
 - **PDF 업로드 및 텍스트 추출**: 사용자가 업로드한 PDF에서 텍스트를 추출
@@ -15,9 +16,10 @@ React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사�
 - **Flask 서버 연동**: PDF 텍스트 추출 API 서버 직접 구성
 
 
+<br>
 
 
-## 사용 기술
+#### 2️⃣ 사용 기술
 
 | 구분 | 기술 |
 |------|------|
@@ -27,10 +29,10 @@ React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사�
 | **PDF 처리 서버** | Flask + PyMuPDF (fitz) + requests |
 
 
+<br>
 
 
-
-## 프로젝트 의의
+#### 3️⃣ 프로젝트 의의
 
 TonePick은 단순한 TTS를 넘어서, **감성적 연결**을 위한 개인 맞춤 오디오북 서비스를 제공합니다.  
 - 돌아가신 가족의 목소리를 다시 들을 수 있는 **정서적 위안**  
@@ -38,14 +40,14 @@ TonePick은 단순한 TTS를 넘어서, **감성적 연결**을 위한 개인 �
 - 자녀에게 맞춤 목소리로 동화를 들려주는 **가족 중심 콘텐츠 활용**
 
 
+<br>
 
 
-
-## PDF 텍스트 추출 서버 사용법 (Flask)
+#### 4️⃣ PDF 텍스트 추출 서버 사용법 (Flask)
 
 앱에서 PDF 텍스트 추출을 위해 로컬 Flask 서버를 실행해야 합니다.
 
-### 파일명: `server.py`
+###### 파일명: `server.py`
 
 ```python
 from flask import Flask, request, jsonify
