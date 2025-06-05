@@ -3,7 +3,8 @@
 **TonePick**은 사용자의 목소리를 클로닝하여 PDF 문서를 개인 맞춤형 AI 음성으로 읽어주는 모바일 오디오북 애플리케이션입니다.  
 React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사용자 맞춤 TTS 경험을 제공합니다.
 
----
+
+
 
 ## 주요 기능
 
@@ -13,9 +14,10 @@ React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사�
 - **Firebase 연동**: 사용자 인증, 파일 저장, 음성 및 문서 관리
 - **Flask 서버 연동**: PDF 텍스트 추출 API 서버 직접 구성
 
----
 
-## 🛠️ 사용 기술
+
+
+## 사용 기술
 
 | 구분 | 기술 |
 |------|------|
@@ -24,7 +26,9 @@ React Native (Expo), Firebase, ElevenLabs API, Flask 서버를 활용하여 사�
 | **AI / TTS** | ElevenLabs API (Voice Cloning + TTS) |
 | **PDF 처리 서버** | Flask + PyMuPDF (fitz) + requests |
 
----
+
+
+
 
 ## 프로젝트 의의
 
@@ -33,7 +37,9 @@ TonePick은 단순한 TTS를 넘어서, **감성적 연결**을 위한 개인 �
 - 시각장애인, 고령층 등 정보 접근성 취약 계층을 위한 **음성 기반 정보 접근**
 - 자녀에게 맞춤 목소리로 동화를 들려주는 **가족 중심 콘텐츠 활용**
 
----
+
+
+
 
 ## PDF 텍스트 추출 서버 사용법 (Flask)
 
